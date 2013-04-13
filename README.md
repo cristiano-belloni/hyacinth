@@ -1,2 +1,1 @@
-hyacinth
-========
+Site for the Hyacinth Project
