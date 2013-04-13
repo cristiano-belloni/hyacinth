@@ -65,7 +65,6 @@
 
 @media (max-width: 480px) {
 
-	/* TODO this does not work on phone */
 	.hy-docs-sidebar.affix {
 	  position: static;
 	  width: auto;
