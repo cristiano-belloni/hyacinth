@@ -110,11 +110,11 @@
 
       <p>The plugin subdirectory name corresponds to the name of the plugin. That’s how your plugin is called. If, for example, you are developing a plugin you want to call “Foo”, its plugin subdirectory, relative to the repository root, will be <code>/plugins/Foo/</code></p>
 
-      <p>A Hyacinth plugin is required to have a javascript module file, located under the plugin subdirectory, whose name is the plugin name and whose extension is .js. So, the module file for your Foo plugin will be <code>/plugins/Foo/Foo.js</code></p>
+      <p>A Hyacinth plugin is required to have a javascript module file, located under the plugin subdirectory, whose name is the plugin name and whose extension is <code>.js</code>. So, the module file for your Foo plugin will be <code>/plugins/Foo/Foo.js</code></p>
 
       <p>Other files (usually additional resources) can be stored in the plugin subdirectory. Their name and position can be chosen at will, as long as they’re under your plugin subdirectory, since the plugin loader will just ignore them.</p>
 
-      <p>See an example of plugin repository schema below (or take a look at the standard plugin repository on GitHub):</p>
+      <p>See an example of plugin repository schema below (or take a look at the <a>standard plugin repository</a>):</p>
 
       <pre>
 Repository root
@@ -140,9 +140,9 @@ Repository root
 
       <h3>Structure of a plugin module file</h3>
 
-      <p>A Hyacinth plugin module is a Javascript AMD requirejs module. When loaded by the host, it immediately returns an object composed by the pluginConf object and the initPlugin function, which are the plugin’s configuration object and the plugin constructor function, respectively.</p>
+      <p>A Hyacinth plugin module is a Javascript AMD module. When loaded by the host, it immediately returns an object composed by the <code>pluginConf</code> object and the <code>initPlugin</code> function, which are the plugin’s configuration object and the plugin constructor function, respectively.</p>
 
-      <p>A Hyacinth plugin module is laid out like the pseudo-code snippet below. In this article, we will analyze this layout and explain how it works:</p>
+      <p>A Hyacinth plugin module is laid out like the pseudo-code snippet below.</p>
 
       <pre><code data-language="javascript">
 define(['kievII', 'require'], function(k2, require) {
@@ -182,6 +182,11 @@ define(['kievII', 'require'], function(k2, require) {
 
     <pre><code data-language="javascript">
 var pluginConf = {
+    version: {
+      major: 1,
+      minor: 2,
+      maintenance: 3
+    },
     osc: true,   // OSC enabled
     audioIn: 4,  // Number of audio inputs
     audioOut: 1, // Number of audio outputs
@@ -197,8 +202,18 @@ var pluginConf = {
 
 <ul>
 <li><code>osc: (boolean)</code> – If this parameter is true, an instance-specific OSCHandler will be passed to the constructor function every time a new plugin instance is initialized.</li>
-<li><code>audioIn, audioOut: (integer ≥ 0)</code> – Number of Audio Nodes passed to the constructor, through the audioSources and audioDestinations arrays.</li>
-<li><code>canvas: (boolean)</code> – If this object is defined, an HTML5 canvas element is created by the host, with width, height dimensions and passed to the constructor through the canvas object.</li>
+<li><code>audioIn, audioOut: (integer ≥ 0)</code> – Number of input and output audio nodes passed to the constructor, through the audioSources and audioDestinations arrays.</li>
+<li><code>canvas: (object / boolean)</code> – If this object is defined, an <a>HTML5 canvas element</a> is created by the host, with width, height dimensions and passed to the constructor through the canvas object.</li>
+<ul>
+  <li><code>width: (integer ≥ 0)</code> – TODO.</li>
+  <li><code>height: (integer ≥ 0)</code> – TODO.</li>
+</ul>
+<li><code>version: (object)</code> – TODO.</li>
+<ul>
+  <li><code>major: (integer ≥ 0)</code> – TODO.</li>
+  <li><code>minor: (integer ≥ 0)</code> – TODO.</li>
+  <li><code>maintenance: (integer ≥ 0)</code> – TODO.</li>  
+</ul>
 </ul>
 
     </section>
@@ -231,9 +246,9 @@ var initPlugin = function(initArgs) {
          }
     );
 };</code></pre>
-  <h3>Instance constructor</h3>
+  <h4>Instance constructor</h4>
 
-  <p>initPlugin is the constructor function of a new plugin instance. When a new plugin instance is created by the host (for example by clicking a plugin name in the Add Plugin menu), something along the line of var pluginInstance = new initPlugin(args) is executed. We will examine the arguments passed to this function later. For now, all you need to know is that this is the method accounted of creating a plugin instance.
+  <p><code>initPlugin</code> is the plugin constructor function. When a new plugin instance is created by the host, something along the line of var pluginInstance = new initPlugin(args) is executed. We will examine the arguments passed to this function in section TODO.
   </p>
 
   </section>
@@ -242,27 +257,27 @@ var initPlugin = function(initArgs) {
 
   <h3>Loading resources</h3>
 
-  <p>Since most plugins need to load resources before being fully operational, in this example initPlugin immediately starts to load said resources asynchronously. Requirejs is the file and module loader of choice of the KievII Host project, so we chose to use its require method to load some external stuff.</p>
+  <p>Since most plugins need to load resources before being fully operational, in this example initPlugin immediately starts to load said resources asynchronously. Requirejs is the file and module loader of choice of the <a>Hyacinth Host</a> project, so we chose to use its <code>require</code> method to load some external stuff.</p>
 
-  Local and non-local resources
+  <h4>Local and non-local resources</h4>
 
-  <p>Resources can be local (relative to the plugin subdirectory URL) or non-local. To specify a local resource, we call the toUrl method of the require object we specified as a dependency in the initial define call (if you need to learn more about requirejs dependencies, please refer to this document).</p>
+  <p>(TODO set it outside the main flow, as it deals with requirejs specific stuff) Resources can be local (relative to the plugin subdirectory URL) or non-local. To specify a local resource, we call the <code>toUrl</code> method of the require object we specified as a dependency in the initial define call (if you need to learn more about requirejs dependencies, please refer to this document).</p>
 
-  <p>So, if we want to load a script named foo.js, located in the js/ directory under the plugin subdirectory, all we have to do is to pass this parameter to require:</p>
+  <p>So, if we want to load a script named <code>foo.js</code>, located in the <code>js/</code> directory under the plugin subdirectory, all we have to do is to pass this parameter to require:</p>
 
   <pre><code data-language="javascript">require.toUrl('js/foo.js')</code></pre>
 
-  <p>If we need to load a script located at the absolute url http://bar.com/bar_lib.js instead, we pass the url string directly to require:</p>
+  <p>If we need to load a script located at the absolute url <code>http://bar.com/bar_lib.js</code> instead, we pass the url string directly to require:</p>
 
   <pre><code data-language="javascript">'http://bar.com/bar_lib.js'</code></pre>
 
-  <h3>Other (non-script) kinds of resources</h3>
+  <h4>Other (non-script) kinds of resources</h4>
 
   <p>We might need to load resources that are not scripts. A plugin with a GUI might need to load some images, or some text strings, for example. You are free to write your custom loader, but KievII Host already preloads the useful Miller Medeiros’ require-js plugins. So, for instance, an easy way to load an image (or a series of images) and being notified when they’re ready is to use the image plugin. This string, passed as a parameter to the require function, will start loading the PNG image named myImage.png, located in the img directory, relative to your plugin’s subdirectory:</p>
 
   <pre><code data-language="javascript">'image!'+ require.toUrl('./img/myImage.png')</code></pre>
 
-  <h3>Callbacks and errbacks</h3>
+  <h4>Callbacks and errbacks</h4>
 
   <p>When all the resources passed to the require function are successfully loaded, a callback function is called, and you can happily start doing whatever your plugin needs to work. If the plugin requested a canvas in its pluginConf, this is the time to clear it and start drawing on it (clearing is important, because the host pre-draws a brief message on it, stating that the plugin is loading. If you want to implement your own splash screen, just clear the canvas and draw on it immediately after initPlugin is called).</p>
 
@@ -307,7 +322,7 @@ var pluginFunction = function (args, resources) {
 </code></pre>
 
 
-  <p>A plugin function is not strictly required by the host, but it’s good practice to separate the constructor / loader function from the real plugin definition. In the following sections, we will analyze how a plugin works (and how it can use the audio stream , the OSC handler and the canvas initialized by the host).</p>
+  <p>A plugin function is not strictly required by the specification, but it’s good practice to separate the constructor / loader function from the real plugin definition. In the following sections, we will analyze how a plugin works (and how it can use the audio stream, the OSC handler and the canvas initialized by the host).</p>
   </section>
 
   <section id="arguments">
@@ -346,7 +361,7 @@ this.context = args.audioContext;
 
     <h4>Sources and destinations</h4>
 
-    <p>The args object contains the audio sources and audio destinations of the plugin, if requested in the configuration object. Each one of these arguments, called audioSources and audioDestinations, is an array of AudioNode objects. Audio sources and destinations are created by the host every time a plugin is instantiated (so, they’re instance-specific) and they are connected automatically to other plugins’ input or output by the host, at the user’s discretion.</p>
+    <p>The args object contains the audio sources and audio destinations of the plugin, if requested in the configuration object. Each one of these arguments, called <code>audioSources</code> and <code>audioDestinations</code>, is an array of AudioNode objects. Audio sources and destinations are created by the host every time a plugin is instantiated (so, they’re instance-specific) and they are connected automatically to other plugins’ input or output by the host, at the user’s discretion.</p>
 
     <p>Important: At the moment, audio sources and destinations are initialized as GainNode objects by the host. This may change in the future, so don’t assume they will always be. Plus, a well-behaved plugin must not change the gain value of its sources and destinations. If you need to apply gain, just create one or more GainNode inside your plugin and connect them to the sources / destinations.</p>
 
