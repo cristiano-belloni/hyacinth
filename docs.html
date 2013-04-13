@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hyacinth</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="./assets/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+    <link href="./assets/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="./assets/css/obsidian.css" rel="stylesheet">
+    <link href="./assets/css/hyacinth.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="../assets/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="../assets/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="../assets/ico/apple-touch-icon-114-precomposed.png">
+      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
+                    <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
+                                   <link rel="shortcut icon" href="../assets/ico/favicon.png">
+  </head>
+
+  <body body data-spy="scroll" data-target=".hy-docs-sidebar">
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">Hyacinth</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="hyacinth.html">Hyacinth</a></li>
+              <li><a href="#host">Host</a></li>
+              <li><a href="#plugins">Plugins</a></li>
+              <li><a href="#alone">Standalone</a></li>
+              <li class="active"><a href="#">Docs</a></li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Contact <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="divider"></li>
+                  <li class="nav-header">Nav header</li>
+                  <li><a href="#">Separated link</a></li>
+                  <li><a href="#">One more separated link</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid" id="main-container">
+      <div class="row-fluid">
+        <div class="span3 hy-docs-sidebar">
+          <div data-spy="affix" class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li class="nav-header">Plugin Repositories</li>
+              <li class="active"><a href="#repo_structure">Structure of a plugin repository</a></li>
+              <li class="nav-header">Plugin modules</li>
+              <li><a href="#module_structure">Structure</a></li>
+              <li><a href="#conf_object">Plugin configuration object</a></li>
+              <li><a href="#constructor">The initPlugin constructor</a></li>
+              <li><a href="#load_resources">Loading resources in a plugin</a></li>
+              <li><a href="#">The plugin main function</a></li>
+              <li><a href="#">Plugin arguments and resources</a></li>
+              <li><a href="#">Audio I/O</a></li>
+              <li><a href="#">Communication with OSC</a></li>
+              <li><a href="#">Plugin GUI</a></li>
+            </ul>
+          </div><!--/.well -->
+        </div><!--/span-->
+
+      <div class="span9">
+      <!-- Main hero unit for a primary marketing message or call to action -->
+      <div class="hero-unit">
+          <img src="./assets/img/hy_logo.png">
+          <div>
+            <h1>Hyacinth-docs</h1>
+            <hr/>
+            <p>Learn about Hyacinth.</p>
+          </div>
+      </div>
+
+      <hr/>
+
+      <section id="repo_structure">
+      <h2>Plugin Repositories</h2>
+      
+      <h3>Structure of a plugin repository</h3>
+
+      <p>A Hyacinth plugin usually lives in a Github repository. Every plugin in a repository is fully contained in its subdirectory (from now, the plugin subdirectory). Plugin subdirectories are located under an always-present first-level subdirectory, called <code>plugins</code>.</p>
+
+      <p>The plugin subdirectory name corresponds to the name of the plugin. That’s how your plugin is called. If, for example, you are developing a plugin you want to call “Foo”, its plugin subdirectory, relative to the repository root, will be <code>/plugins/Foo/</code></p>
+
+      <p>A Hyacinth plugin is required to have a javascript module file, located under the plugin subdirectory, whose name is the plugin name and whose extension is .js. So, the module file for your Foo plugin will be <code>/plugins/Foo/Foo.js</code></p>
+
+      <p>Other files (usually additional resources) can be stored in the plugin subdirectory. Their name and position can be chosen at will, as long as they’re under your plugin subdirectory, since the plugin loader will just ignore them.</p>
+
+      <p>See an example of plugin repository schema below (or take a look at the standard plugin repository on GitHub):</p>
+
+      <pre>
+Repository root
+|
++---plugins
+    |
+    +---Foo (plugin subdir for the Foo plugin)
+    |   |
+    |   +--- Foo.js (module file for plugin Foo)
+    |   |
+    |   +--- assets
+    |        |
+    |        +---fooImage.png
+    |
+    +---Bar (plugin subdir for the Bar plugin)
+        |
+        +--- Bar.js (module file for plugin Bar)</pre>
+            
+      </section>
+      
+      <section id="module_structure">
+      <h2>Plugin modules</h2>
+
+      <h3>Structure of a plugin module file</h3>
+
+      <p>A Hyacinth plugin module is a Javascript AMD requirejs module. When loaded by the host, it immediately returns an object composed by the pluginConf object and the initPlugin function, which are the plugin’s configuration object and the plugin constructor function, respectively.</p>
+
+      <p>A Hyacinth plugin module is laid out like the pseudo-code snippet below. In this article, we will analyze this layout and explain how it works:</p>
+
+      <pre><code data-language="javascript">
+define(['kievII', 'require'], function(k2, require) {
+  /* This object is returned to the host as soon as
+   * the plugin is loaded */
+  var pluginConf = {
+    /* ... */
+  };
+
+  /* This function is called by the host every time a plugin INSTANCE
+  * is required [e.g: requested by the Add Plugin button] */
+  var initPlugin = function(initArgs) {
+    /* ... */
+  };
+            
+  return {
+    /* The plugin returns this object when loaded by the host */
+    initPlugin: initPlugin,
+    pluginConf: pluginConf
+  };
+});
+      </code></pre>
+
+      <p>
+        Lorem ipsum dolor
+      </p>
+
+    </section>
+
+
+    <hr>
+
+
+
+    <section id="conf_object">
+    <h3>Plugin configuration object</h3>
+
+    <pre><code data-language="javascript">
+var pluginConf = {
+    osc: true,   // OSC enabled
+    audioIn: 4,  // Number of audio inputs
+    audioOut: 1, // Number of audio outputs
+    canvas: {    // Canvas real estate for the plugin
+        width: 488,
+        height: 164
+    }
+};</code></pre>
+
+<p>pluginConf is the general plugin configuration. It describes what the host should provide to the constructor function, through the arguments, in order to create an instance of the plugin.</p>
+<p>This object is loaded only once by the host. It should not change during the lifetime of the host session</p>
+<p>These parameters are accepted:</p>
+
+<ul>
+<li><code>osc: (boolean)</code> – If this parameter is true, an instance-specific OSCHandler will be passed to the constructor function every time a new plugin instance is initialized.</li>
+<li><code>audioIn, audioOut: (integer ≥ 0)</code> – Number of Audio Nodes passed to the constructor, through the audioSources and audioDestinations arrays.</li>
+<li><code>canvas: (boolean)</code> – If this object is defined, an HTML5 canvas element is created by the host, with width, height dimensions and passed to the constructor through the canvas object.</li>
+</ul>
+
+    </section>
+
+
+<section id="constructor">
+
+  <h3>The initPlugin constructor</h3>
+
+<pre><code data-language="javascript">
+var initPlugin = function(initArgs) {
+    var args = initArgs;
+    var resToLoad = ['image!'+ require.toUrl('./img/myImage.png'),
+                     require.toUrl('js/foo.js'),
+                     'http://bar.com/bar_lib.js'];
+
+    // Optionally load resources with require()
+    require
+        (resToLoad,
+         function () {
+             // require callback
+             var resources = arguments;
+             pluginFunction.call (this, args, resources);
+         }.bind(this),
+         function (err) {
+             // require errback
+             // call Host interface
+             args.K2HInterface.pluginError (args.id,
+                 "Error loading resources");
+         }
+    );
+};</code></pre>
+  <h3>Instance constructor</h3>
+
+  <p>initPlugin is the constructor function of a new plugin instance. When a new plugin instance is created by the host (for example by clicking a plugin name in the Add Plugin menu), something along the line of var pluginInstance = new initPlugin(args) is executed. We will examine the arguments passed to this function later. For now, all you need to know is that this is the method accounted of creating a plugin instance.
+  </p>
+
+  </section>
+
+  <section id="load_resources">
+
+  <h3>Loading resources</h3>
+
+  <p>Since most plugins need to load resources before being fully operational, in this example initPlugin immediately starts to load said resources asynchronously. Requirejs is the file and module loader of choice of the KievII Host project, so we chose to use its require method to load some external stuff.</p>
+
+  Local and non-local resources
+
+  <p>Resources can be local (relative to the plugin subdirectory URL) or non-local. To specify a local resource, we call the toUrl method of the require object we specified as a dependency in the initial define call (if you need to learn more about requirejs dependencies, please refer to this document).</p>
+
+  <p>So, if we want to load a script named foo.js, located in the js/ directory under the plugin subdirectory, all we have to do is to pass this parameter to require:</p>
+
+  <pre><code data-language="javascript">require.toUrl('js/foo.js')</code></pre>
+
+  <p>If we need to load a script located at the absolute url http://bar.com/bar_lib.js instead, we pass the url string directly to require:</p>
+
+  <pre><code data-language="javascript">'http://bar.com/bar_lib.js'</code></pre>
+
+  <h3>Other (non-script) kinds of resources</h3>
+
+  <p>We might need to load resources that are not scripts. A plugin with a GUI might need to load some images, or some text strings, for example. You are free to write your custom loader, but KievII Host already preloads the useful Miller Medeiros’ require-js plugins. So, for instance, an easy way to load an image (or a series of images) and being notified when they’re ready is to use the image plugin. This string, passed as a parameter to the require function, will start loading the PNG image named myImage.png, located in the img directory, relative to your plugin’s subdirectory:</p>
+
+  <pre><code data-language="javascript">'image!'+ require.toUrl('./img/myImage.png')</code></pre>
+
+  <h3>Callbacks and errbacks</h3>
+
+  <p>When all the resources passed to the require function are successfully loaded, a callback function is called, and you can happily start doing whatever your plugin needs to work. If the plugin requested a canvas in its pluginConf, this is the time to clear it and start drawing on it (clearing is important, because the host pre-draws a brief message on it, stating that the plugin is loading. If you want to implement your own splash screen, just clear the canvas and draw on it immediately after initPlugin is called).</p>
+
+  <p>This callback, which we will call the success callback, is the second parameter of the require function, after the resource array. In this example, the success callback is coded like this:</p>
+
+  <pre><code data-language="javascript">function () {
+      // require callback
+      var resources = arguments;
+      pluginFunction.call (this, args, resources);
+  }.bind(this),</code></pre>
+
+  <p>The callback function is bound to this, since we want it to be bound to the plugin instance object initPlugin is initializing.</p>
+
+  <p>Since the callback’s argument is the loaded resources array, we save the callback’s arguments into the resources variable. We already saved the arguments passed to the constructor (in the line var args = initArgs), so we can call the “real” plugin function, as it was a member of this, passing along the plugin arguments and the resources we just loaded.</p>
+
+  <p>The success callback is called if all the resources load successfully. What if some of them fail to load?
+    The third parameter passed to require is the so-called errback function, a callback on an error event. This is our errback:</p>
+
+  <pre><code data-language="javascript">function (err) {
+      // require errback
+      // call Host interface
+      args.K2HInterface.pluginError (args.id,
+          "Error loading resources");
+  }</code></pre>
+
+  <p>On an error event, what we want to do is to tell the host our plugin had a non-recoverable error and can’t function properly. One side effect of this is that the host draws an error message on the plugin’s canvas, warning the user that something went wrong.
+    To communicate with the plugin, we receive a K2HInterface object with the initPlugin arguments. Here, we tell the host our plugin instance (identified by args.id) had a fatal error, and set a custom message explaining what the error was.</p>
+
+  <p>There’s a lot of things one can do, in an error event. In this case, the offending resource(s) remain defined and all the following require calls made by other future instances of the plugin will automatically fail.
+    If you want the future instances of the plugin to try to re-load the resources that caused the error, you might want to undefine the offending resources.
+    To obtain this, you have to find the offending resources ids and undefine them with something like requirejs.undef(failedId)</p>
+
+  </section>
+
+      <hr>
+
+      <footer>
+        <p>&copy; bitterspring.net 2013</p>
+      </footer>
+
+     </div>
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="./assets/js/jquery-1.9.1.min.js"></script>
+    <script src="./assets/js/bootstrap.min.js"></script>
+    <script src="assets/js/rainbow-custom.min.js"></script>
+    <!-- <script src="../assets/js/bootstrap-alert.js"></script>
+    <script src="../assets/js/bootstrap-modal.js"></script>
+    <script src="../assets/js/bootstrap-dropdown.js"></script>
+    <script src="../assets/js/bootstrap-scrollspy.js"></script>
+    <script src="../assets/js/bootstrap-tab.js"></script>
+    <script src="../assets/js/bootstrap-tooltip.js"></script>
+    <script src="../assets/js/bootstrap-popover.js"></script>
+    <script src="../assets/js/bootstrap-button.js"></script>
+    <script src="../assets/js/bootstrap-collapse.js"></script>
+    <script src="../assets/js/bootstrap-carousel.js"></script>
+    <script src="../assets/js/bootstrap-typeahead.js"></script> -->
+  </body>
+</html>

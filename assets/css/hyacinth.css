@@ -1,0 +1,107 @@
+@font-face {font-family: 'Capita-Light';src: url('MyFontsWebfontsKit/webfonts/269569_0_0.eot');src: url('MyFontsWebfontsKit/webfonts/269569_0_0.eot?#iefix') format('embedded-opentype'),url('MyFontsWebfontsKit/webfonts/269569_0_0.woff') format('woff'),url('MyFontsWebfontsKit/webfonts/269569_0_0.ttf') format('truetype');}
+
+.hero-unit img {
+	width: 22%;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.hero-unit h1 {
+	font-size: 5em;
+	font-weight: normal;
+	font-style: italic;
+}
+
+.hero-unit hr {
+	border-top: 2px solid rgb(49, 49, 49);
+}
+
+.hero-unit p {
+	font-size: 1.2em;
+	font-weight: normal;
+	font-style: normal;
+}
+
+.hero-unit div {
+	margin-left: 5%;
+	width: 70%;
+	display:inline-block;
+}
+.hero-unit {
+	font-family: Capita-Light;
+
+	padding-top: 20px;
+	padding-bottom: 20px;
+
+	color:black;
+	background-color: rgb(253, 244, 244);
+
+}
+
+#main-container a {
+	color: rgb(151, 52, 52);
+}
+
+#main-container code {
+	font-size: 14px;
+}
+
+#main-container pre {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.hy-section {
+	/*background-color: rgb(253, 244, 244);*/
+}
+
+.nav-list > .active > a {
+	background-color: rgb(236, 224, 224);
+}
+
+.nav-list > .active > a:hover {
+	background-color: rgb(236, 214, 214);
+}
+
+@media (max-width: 480px) {
+
+	/* TODO this does not work on phone */
+	.hy-docs-sidebar.affix {
+	  position: static;
+	  width: auto;
+	  top: 0;
+	}
+
+	.hero-unit {
+		vertical-align: inherit;
+		text-align: center;
+	}
+
+	.hero-unit img {
+		width: auto;
+		display: block;
+		
+	}
+
+	.hero-unit h1 {
+		font-size: 2em;
+	}
+
+	.hero-unit p {
+		/* TODO this does not work on phone */
+		font-size: 0.8em;
+	}
+
+	#main-container code {
+		font-size: 12px;
+		font-weight: normal;
+	}
+
+	#main-container pre {
+		font-size: 12px;
+		font-weight: normal;
+	}
+}
+
+
+
