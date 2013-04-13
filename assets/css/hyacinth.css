@@ -51,6 +51,13 @@
 	font-weight: bold;
 }
 
+/* Right section when clicked (the navbar is 40px).
+See http://stackoverflow.com/questions/9288482/how-do-i-set-the-offset-for-scrollspy-in-bootstrap */
+#main-container section {
+	padding-top: 40px;
+	margin-top: -40px;
+}
+
 .hy-section {
 	/*background-color: rgb(253, 244, 244);*/
 }
@@ -65,6 +72,7 @@
 
 @media (max-width: 480px) {
 
+	/* Responsive affix stays static */
 	.hy-docs-sidebar.affix {
 	  position: static;
 	  width: auto;
