@@ -106,24 +106,24 @@
       
       <h3>Structure of a plugin repository</h3>
 
-      <p>A Hyacinth plugin usually lives in a Github repository. Every plugin in a repository is fully contained in its subdirectory (from now, the plugin subdirectory). Plugin subdirectories are located under an always-present first-level subdirectory, called <code>plugins</code>.</p>
+      <p>A Hyacinth collection of plugins usually is stored in a Github repository. Every plugin in a repository is contained in its subdirectory. Plugin subdirectories are located under an always-present first-level subdirectory, called <code>hy-plugins</code>.</p>
 
-      <p>The plugin subdirectory name corresponds to the name of the plugin. That’s how your plugin is called. If, for example, you are developing a plugin you want to call “Foo”, its plugin subdirectory, relative to the repository root, will be <code>/plugins/Foo/</code></p>
+      <p>Each plugin subdirectory name corresponds to the name of the plugin. That’s how an Hyacinth host figures out the plugin name. If, for example, you are developing a plugin you want to call “Foo”, its plugin subdirectory, relative to the repository root, will be <code>/hy-plugins/Foo/</code></p>
 
-      <p>A Hyacinth plugin is required to have a javascript module file, located under the plugin subdirectory, whose name is the plugin name and whose extension is <code>.js</code>. So, the module file for your Foo plugin will be <code>/plugins/Foo/Foo.js</code></p>
+      <p>A Hyacinth plugin is required to have a javascript module file, located under its plugin subdirectory, whose name is the plugin's name and whose extension is <code>.js</code>. So, the module file for your Foo plugin will be <code>/plugins/Foo/Foo.js</code></p>
 
-      <p>Other files (usually additional resources) can be stored in the plugin subdirectory. Their name and position can be chosen at will, as long as they’re under your plugin subdirectory, since the plugin loader will just ignore them.</p>
+      <p>Other files can be stored in the plugin subdirectory. Their name and location can be chosen at will, as long as they’re under your plugin subdirectory, since they have no particular meaning for the host and it will ignore them.</p>
 
       <p>See an example of plugin repository schema below (or take a look at the <a>standard plugin repository</a>):</p>
 
       <pre>
 Repository root
 |
-+---plugins
++---plugins (always present)
     |
     +---Foo (plugin subdir for the Foo plugin)
     |   |
-    |   +--- Foo.js (module file for plugin Foo)
+    |   +--- Foo.js (module file for Foo)
     |   |
     |   +--- assets
     |        |
@@ -131,7 +131,7 @@ Repository root
     |
     +---Bar (plugin subdir for the Bar plugin)
         |
-        +--- Bar.js (module file for plugin Bar)</pre>
+        +--- Bar.js (module file for Bar)</pre>
             
       </section>
       
@@ -140,9 +140,9 @@ Repository root
 
       <h3>Structure of a plugin module file</h3>
 
-      <p>A Hyacinth plugin module is a Javascript AMD module. When loaded by the host, it immediately returns an object composed by the <code>pluginConf</code> object and the <code>initPlugin</code> function, which are the plugin’s configuration object and the plugin constructor function, respectively.</p>
+      <p>A Hyacinth plugin module file is a Javascript AMD module. When loaded by the host, it immediately returns an object composed by the plugin’s configuration object, called <code>pluginConf</code>, and the plugin constructor function, called <code>initPlugin</code>.</p>
 
-      <p>A Hyacinth plugin module is laid out like the pseudo-code snippet below.</p>
+      <p>Here' s an example of a bare-bones plugin module file:</p>
 
       <pre><code data-language="javascript">
 define(['kievII', 'require'], function(k2, require) {
@@ -165,10 +165,6 @@ define(['kievII', 'require'], function(k2, require) {
   };
 });
       </code></pre>
-
-      <p>
-        Lorem ipsum dolor
-      </p>
 
     </section>
 
@@ -200,22 +196,6 @@ var pluginConf = {
 <p>This object is loaded only once by the host. It should not change during the lifetime of the host session</p>
 <p>These parameters are accepted:</p>
 
-<ul>
-<li><code>osc: (boolean)</code> – If this parameter is true, an instance-specific OSCHandler will be passed to the constructor function every time a new plugin instance is initialized.</li>
-<li><code>audioIn, audioOut: (integer ≥ 0)</code> – Number of input and output audio nodes passed to the constructor, through the audioSources and audioDestinations arrays.</li>
-<li><code>canvas: (object / boolean)</code> – If this object is defined, an <a>HTML5 canvas element</a> is created by the host, with width, height dimensions and passed to the constructor through the canvas object.</li>
-<ul>
-  <li><code>width: (integer ≥ 0)</code> – TODO.</li>
-  <li><code>height: (integer ≥ 0)</code> – TODO.</li>
-</ul>
-<li><code>version: (object)</code> – TODO.</li>
-<ul>
-  <li><code>major: (integer ≥ 0)</code> – TODO.</li>
-  <li><code>minor: (integer ≥ 0)</code> – TODO.</li>
-  <li><code>maintenance: (integer ≥ 0)</code> – TODO.</li>  
-</ul>
-</ul>
-
 <table class="table table-bordered table-hover table-striped">
   <caption>pluginConf parameters</caption>
   <thead>
@@ -229,28 +209,43 @@ var pluginConf = {
     <tr>
       <td><code>osc</code></td>
       <td>boolean</td>
-      <td>If this parameter is true, an instance-specific OSCHandler will be passed to the constructor function every time a new plugin instance is initialized.</td>
+      <td>If this parameter is true, the plugin is OSC-enabled. The host will pass an instance-specific OSC handler to the constructor function every time a new plugin instance is initialized.</td>
     </tr>
     <tr>
       <td><code>version</code></td>
       <td>object</td>
-      <td>todo todo todo todo todo todo todo todo todo </td>
+      <td>The plugin's version object. Version is expressed as major.minor.manteinance </td>
     </tr>
     <tr>
       <td><code>version.major</code></td>
-      <td>(integer ≥ 0)</td>
-      <td>todo todo todo todo todo todo todo todo todo </td>
+      <td>integer ≥ 0</td>
+      <td>The version's major number. Must be defined if version is defined.</td>
     </tr>
     <tr>
       <td><code>version.minor</code></td>
-      <td>(integer ≥ 0)</td>
-      <td>todo todo todo todo todo todo todo todo todo </td>
+      <td>integer ≥ 0</td>
+      <td>The version's minor number. If undefined or null, it will always be compared as lower than other defined minor numbers.</td>
     </tr>
     <tr>
       <td><code>version.maintenance</code></td>
-      <td>(integer ≥ 0)</td>
-      <td>todo todo todo todo todo todo todo todo todo </td>
+      <td>integer ≥ 0</td>
+      <td>The version's maintenance number. If undefined or null, it will always be compared as lower than other defined maintenance numbers. Can be ignored if minor is undefined or null.</td>
     </tr>
+   <tr>
+      <td><code>audioIn</code></td>
+      <td>integer ≥ 0</td>
+      <td>The number of distinct audio inputs the plugin will handle. This number <strong>doesn't</strong> represent the stereo or mono-ness of the audio inputs.</td>
+    </tr>
+    <tr>
+      <td><code>audioOut</code></td>
+      <td>integer ≥ 0</td>
+      <td>The number of distinct audio outputs the plugin will handle. This number <strong>doesn't</strong> represent the stereo or mono-ness of the audio outputs.</td>
+    </tr> 
+    <tr>
+      <td><code>canvas</code></td>
+      <td>object</td>
+      <td>If this object is defined, the host will create an instance-specific <a>HTML5 canvas element</a>, which will be passed to the contructor function every time a new plugin instance is initialized.</td>
+    </tr> 
   </tbody>
 </table>
 
