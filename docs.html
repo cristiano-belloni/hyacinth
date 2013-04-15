@@ -77,11 +77,13 @@
               <li class="active"><a href="#repo_structure">Structure of a plugin repository</a></li>
               <li class="nav-header">Plugin modules</li>
               <li><a href="#module_structure">Structure</a></li>
-              <li><a href="#conf_object">Plugin configuration object</a></li>
+              <li><a href="#conf_object">The pluginConf configuration object</a></li>
               <li><a href="#constructor">The initPlugin constructor</a></li>
-              <li><a href="#load_resources">Loading resources in a plugin</a></li>
-              <li><a href="#main">The plugin main function</a></li>
-              <li><a href="#arguments">Plugin arguments and resources</a></li>
+              <li><a href="#plugin_state">Plugin State</a></li>
+              <li><a href="#host_interface">Interfacing with the Host</a></li>
+              <li><a href="#load_resources">Digression: Loading resources</a></li>
+              <li><a href="#main">Main plugin function</a></li>
+              <li><a href="#arguments">Plugin arguments</a></li>
               <li><a href="#osc">Communication with OSC</a></li>
               <li><a href="#gui">Plugin GUI</a></li>
             </ul>
@@ -119,7 +121,7 @@
       <pre>
 Repository root
 |
-+---plugins (always present)
++---hy-plugins (always present)
     |
     +---Foo (plugin subdir for the Foo plugin)
     |   |
@@ -174,7 +176,7 @@ define(['kievII', 'require'], function(k2, require) {
 
 
     <section id="conf_object">
-    <h3>Plugin configuration object</h3>
+    <h3>the pluginConf configuration object</h3>
 
     <pre><code data-language="javascript">
 var pluginConf = {
@@ -192,9 +194,9 @@ var pluginConf = {
     }
 };</code></pre>
 
-<p>pluginConf is the general plugin configuration. It describes what the host should provide to the constructor function, through the arguments, in order to create an instance of the plugin.</p>
-<p>This object is loaded only once by the host. It should not change during the lifetime of the host session</p>
-<p>These parameters are accepted:</p>
+<p><code>pluginConf</code> is the plugin configuration object. It describes what the host should provide to the constructor function, through the arguments, in order to create an instance of the plugin.</p>
+<p>This object is evaluated only once by the host, at plugin load. It should not change during the lifetime of the host session.</p>
+<p><code>pluginConf</code> accepts these parameters:</p>
 
 <table class="table table-bordered table-hover table-striped">
   <caption>pluginConf parameters</caption>
@@ -214,7 +216,7 @@ var pluginConf = {
     <tr>
       <td><code>version</code></td>
       <td>object</td>
-      <td>The plugin's version object. Version is expressed as major.minor.manteinance </td>
+      <td>The plugin's version object. Version is expressed as <em>major.minor.patch</em></td>
     </tr>
     <tr>
       <td><code>version.major</code></td>
@@ -227,9 +229,14 @@ var pluginConf = {
       <td>The version's minor number. If undefined or null, it will always be compared as lower than other defined minor numbers.</td>
     </tr>
     <tr>
-      <td><code>version.maintenance</code></td>
+      <td><code>version.patch</code></td>
       <td>integer ≥ 0</td>
-      <td>The version's maintenance number. If undefined or null, it will always be compared as lower than other defined maintenance numbers. Can be ignored if minor is undefined or null.</td>
+      <td>The version's patch number. If undefined or null, it will always be compared as lower than other defined patch numbers. Can be ignored by the host if minor is undefined or null.</td>
+    </tr>
+    <tr>
+      <td><code>version.desc</code></td>
+      <td>string</td>
+      <td>A human-readable (string) description of the version. Can be a codename or a brief description. Has no influence on comparing versions.</td>
     </tr>
    <tr>
       <td><code>audioIn</code></td>
@@ -244,7 +251,32 @@ var pluginConf = {
     <tr>
       <td><code>canvas</code></td>
       <td>object</td>
-      <td>If this object is defined, the host will create an instance-specific <a>HTML5 canvas element</a>, which will be passed to the contructor function every time a new plugin instance is initialized.</td>
+      <td>If this object is defined, the host will create an instance-specific <a>HTML5 canvas element</a>, which will be passed to the contructor function every time a new plugin instance is initialized. Incompatible with the <code>div</code> option.</td>
+    </tr>
+    <tr>
+      <td><code>canvas.width</code></td>
+      <td>integer ≥ 0</td>
+      <td>Canvas width. Mandatory if <code>canvas</code> object is defined.</td>
+    </tr>
+    <tr>
+      <td><code>canvas.height</code></td>
+      <td>integer ≥ 0</td>
+      <td>Canvas height. Mandatory if <code>canvas</code> object is defined.</td>
+    </tr>
+    <tr>
+      <td><code>div</code></td>
+      <td>object</td>
+      <td>If this object is defined, the host will create an instance-specific <a>div</a>, which will be passed to the contructor function every time a new plugin instance is initialized. Incompatible with the <code>canvas</code> option.</td>
+    </tr>
+    <tr>
+      <td><code>div.width</code></td>
+      <td>integer ≥ 0</td>
+      <td>Div width. Mandatory if <code>div</code> object is defined.</td>
+    </tr>
+    <tr>
+      <td><code>div.height</code></td>
+      <td>integer ≥ 0</td>
+      <td>Div height. Mandatory if <code>div</code> object is defined.</td>
     </tr> 
   </tbody>
 </table>
@@ -258,43 +290,110 @@ var pluginConf = {
 
 <pre><code data-language="javascript">
 var initPlugin = function(initArgs) {
-    var args = initArgs;
-    var resToLoad = ['image!'+ require.toUrl('./img/myImage.png'),
-                     require.toUrl('js/foo.js'),
-                     'http://bar.com/bar_lib.js'];
+    /*  Process the arguments
+        [...]
+    */
 
-    // Optionally load resources with require()
-    require
-        (resToLoad,
-         function () {
-             // require callback
-             var resources = arguments;
-             pluginFunction.call (this, args, resources);
-         }.bind(this),
-         function (err) {
-             // require errback
-             // call Host interface
-             args.K2HInterface.pluginError (args.id,
-                 "Error loading resources");
-         }
-    );
+    /*  Load resources
+        [...]
+    */
+
+    if (fatalError) {
+      /*  Cleanup code
+          [...]
+      */
+
+      /* Fatal error occurred: set the state in HyInterface */
+      args.HyInterface.setInstanceState ('fatal', {description: errorMsg});
+      return;
+    }
+
+    /* Plugin is ready */
+    args.HyInterface.setInstanceState ('ready');
+
 };</code></pre>
-  <h4>Instance constructor</h4>
 
-  <p><code>initPlugin</code> is the plugin constructor function. When a new plugin instance is created by the host, something along the line of var pluginInstance = new initPlugin(args) is executed. We will examine the arguments passed to this function in section TODO.
+  <p><code>initPlugin</code> is the plugin constructor function. When a new plugin instance is created by the host, something along the line of <code>var pluginInstance = new initPlugin(args)</code> is executed. This function is responsible of creating a <em>plugin instance</em>. This includes loading resources, when needed, initializing the plugin, and changing the state of the plugin when the initialization phase is over (see the <a href="#plugin_state">Plugin State section</a>)</p>
+  <p>We will examine the arguments passed to this function later, in the <a href="#arguments">Plugin Arguments section</a>.
   </p>
 
   </section>
 
+  <section id="plugin_state">
+
+    <h3>Plugin State</h3>
+
+    <p>Every plugin instance, in its lifetime, has a state, assigned at init-time by the host. Everytime a plugin changes state, the host is notified via the <a href="#host_interface">Host Interface</a> mechanism. The possible states of a plugin are listed in the following table:
+    </p>
+
+    <table class="table table-bordered table-hover table-striped">
+      <caption>plugin instance states</caption>
+      <thead>
+        <tr>
+          <th> State</th>
+          <th> Meaning</th>
+          <th> Behaviour</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>init</code></td>
+          <td>The plugin instance is non-functional because it is initializing or loading resources. It can became functional later.</td>
+          <td>This is the default state on plugin creation. The plugin is not functional, awaiting for its initialization tasks to complete. This is a temporary state, which will be changed as soon the initialization is complete or a fatal error is encountered. The host can display a temporary message warning the user that the plugin is being initialized.</td>
+        </tr>
+        <tr>
+          <td><code>fatal</code></td>
+          <td>The plugin instance is non-functional because it encountered a non-recoverable error. The plugin instance will never be functional.</td>
+          <td>This state is the fatal error state. The plugin instance encountered an un-recoverable error during its initialization or at run time. This is a "terminal" state, which should never be changed again by the plugin instance. The host can display a message warning the user that the plugin instance is in an error state, or destroy the plugin object right away.</td>
+        </tr>
+        <tr>
+          <td><code>ready</code></td>
+          <td>The plugin instance is functional and ready to be used.</td>
+          <td>After completing initialization, and having not encountered a fatal error, a plugin instance signals that it is in the ready state. The plugin is functional and ready to be used. This state can change to the fatal state if a fatal error is encountered, or back to the init state if the plugin needs to perform offline operations that would put it in a non-functional state (loading additional resources, or a long non-real-time calculation, for example).</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </section>
+
+  <section id="host_interface">
+    <h3>Interfacing with the Host</h3>
+    <p>
+      A plugin instance can communicate with the host, to notify a change on its <a href="plugin_states">state</a> or to get informations about other plugins.
+    </p>
+    <p>
+      An interface object is passed in the arguments (read more about the arguments passed to a plugin instance in the <a href="#arguments">Plugin Arguments section</a>). The object exposes these functions:
+    </p>
+
+    <dl>
+      <dt><h4>setInstanceState</h4></dt>
+      <dd><h5>Parameters</h5> <code><em>string</em> state, <em>object</em> options</code></dd>
+      <dd><h5>Return value</h5> <em>none</em></dd>
+      <dd><h5>Description</h5> <p>Set the instance state, as described in <a href="#plugin_state">this section</a>. Accepted values for the parameter a re <code>init</code>, <code>fatal</code> and <code>ready</code>. If <code>state === 'fatal'</code>, <code>options.description</code> can be specified to provide a description for the fatal event.</p></dd>
+    </dl>
+
+
+    <dl>
+      <dt><h4>getOSCInstances</h4></dt>
+      <dd><h5>Parameters</h5> <em>none</em></dd>
+      <dd><h5>Return value</h5> an <code>Array</code> of OSC-enabled <code>pluginInstanceDesc</code>, where <code>pluginInstanceDesc.id</code> is the unique id of the instance, <code>pluginInstanceDesc.pluginName</code> is the instance's plugin name and <code>pluginInstanceDesc.pluginCustomName</code> is the instance's custom name (if the host doesn't support user-defined instance names, this is equal to <code>pluginInstanceDesc.pluginName</code>.</dd>
+      <dd><h5>Description</h5> <p>Get a list of OSC-enabled plugin instances present in the current session. A plugin instance can request such a list for OSC discovery. By convention, the host should return only instances in their <code>ready</code> state. The field <code>pluginInstanceDesc.pluginCustomName</code> can be specified if the host supports custom (user-defined) names for instances. Otherwise, it should be equal to <code>pluginInstanceDesc.pluginName</code>. <code>pluginInstanceDesc.id</code> is an id, generated by the host, that uniquely identifies a given plugin instance.</p></dd>
+    </dl>
+
+  </section>
+
+
   <section id="load_resources">
 
-  <h3>Loading resources</h3>
+  <h3>Initializing and loading resources</h3>
 
-  <p>Since most plugins need to load resources before being fully operational, in this example initPlugin immediately starts to load said resources asynchronously. Requirejs is the file and module loader of choice of the <a>Hyacinth Host</a> project, so we chose to use its <code>require</code> method to load some external stuff.</p>
+  <p>Since most plugins need to load resources, such as images, impulse files or other scripts before being fully operational, the constructor is the place where to load resources asynchronously.</p>
 
-  <h4>Local and non-local resources</h4>
+  <p>A plugin can load its resources anyway it likes. In these examples the <a>Requirejs</a> library, along with the <a>requirejs-plugins</a> modules is used to load additional images and scripts. Additionally, the <a>Hyacinth Host</a> project includes Requirejs and requirejs-plugins, so a plugin can start using them right away.</p>
 
-  <p>(TODO set it outside the main flow, as it deals with requirejs specific stuff) Resources can be local (relative to the plugin subdirectory URL) or non-local. To specify a local resource, we call the <code>toUrl</code> method of the require object we specified as a dependency in the initial define call (if you need to learn more about requirejs dependencies, please refer to this document).</p>
+  <h4>Example Local and non-local resources with Require</h4>
+
+  <p><em>TODO head-up This is not a guide to Requirejs: if you want to learn Requirejs, please refer to <a>their documentation</a></em> Resources can be local (relative to the plugin subdirectory URL) or non-local. To specify a local resource, we call the <code>toUrl</code> method of the require object we specified as a dependency in the initial define call.</p>
 
   <p>So, if we want to load a script named <code>foo.js</code>, located in the <code>js/</code> directory under the plugin subdirectory, all we have to do is to pass this parameter to require:</p>
 
@@ -306,7 +405,7 @@ var initPlugin = function(initArgs) {
 
   <h4>Other (non-script) kinds of resources</h4>
 
-  <p>We might need to load resources that are not scripts. A plugin with a GUI might need to load some images, or some text strings, for example. You are free to write your custom loader, but KievII Host already preloads the useful Miller Medeiros’ require-js plugins. So, for instance, an easy way to load an image (or a series of images) and being notified when they’re ready is to use the image plugin. This string, passed as a parameter to the require function, will start loading the PNG image named myImage.png, located in the img directory, relative to your plugin’s subdirectory:</p>
+  <p>We might need to load resources that are not scripts. A plugin with a GUI might need to load some images, or some text strings, for example. You are free to write your custom loader, of course. In these examples, we're going to use some of <a>Miller Medeiros’ require-js</a> plugins. So, for instance, an easy way to load an image (or a series of images) and being notified when they’re ready is to use the image plugin. This string, passed as a parameter to the require function, will start loading the PNG image named myImage.png, located in the img directory, relative to your plugin’s subdirectory:</p>
 
   <pre><code data-language="javascript">'image!'+ require.toUrl('./img/myImage.png')</code></pre>
 
