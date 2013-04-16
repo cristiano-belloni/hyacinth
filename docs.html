@@ -81,11 +81,8 @@
               <li><a href="#constructor">The initPlugin constructor</a></li>
               <li><a href="#plugin_state">Plugin State</a></li>
               <li><a href="#host_interface">Interfacing with the Host</a></li>
-              <li><a href="#load_resources">Digression: Loading resources</a></li>
-              <li><a href="#main">Main plugin function</a></li>
               <li><a href="#arguments">Plugin arguments</a></li>
               <li><a href="#osc">Communication with OSC</a></li>
-              <li><a href="#gui">Plugin GUI</a></li>
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
@@ -142,12 +139,12 @@ Repository root
 
       <h3>Structure of a plugin module file</h3>
 
-      <p>A Hyacinth plugin module file is a Javascript AMD module. When loaded by the host, it immediately returns an object composed by the plugin’s configuration object, called <code>pluginConf</code>, and the plugin constructor function, called <code>initPlugin</code>.</p>
+      <p>A Hyacinth plugin module file is a <a>Javascript AMD module</a>. When loaded by the host, it immediately returns an object composed by the plugin’s configuration object, called <code>pluginConf</code>, and the plugin constructor function, called <code>initPlugin</code>. The plugin module is dependent to the AMD <code>require</code> function, which it can use to load its asynchronous resources in autonomy.</p>
 
       <p>Here' s an example of a bare-bones plugin module file:</p>
 
       <pre><code data-language="javascript">
-define(['kievII', 'require'], function(k2, require) {
+define(['require'], function(k2, require) {
   /* This object is returned to the host as soon as
    * the plugin is loaded */
   var pluginConf = {
@@ -204,7 +201,7 @@ var pluginConf = {
   <thead>
     <tr>
       <th> Parameter name</th>
-      <th> Arguments</th>
+      <th> Type</th>
       <th> Description</th>
     </tr>
   </thead>
@@ -221,17 +218,17 @@ var pluginConf = {
     </tr>
     <tr>
       <td><code>version.major</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>The version's major number. Must be defined if version is defined.</td>
     </tr>
     <tr>
       <td><code>version.minor</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>The version's minor number. If undefined or null, it will always be compared as lower than other defined minor numbers.</td>
     </tr>
     <tr>
       <td><code>version.patch</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>The version's patch number. If undefined or null, it will always be compared as lower than other defined patch numbers. Can be ignored by the host if minor is undefined or null.</td>
     </tr>
     <tr>
@@ -241,12 +238,12 @@ var pluginConf = {
     </tr>
    <tr>
       <td><code>audioIn</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>The number of distinct audio inputs the plugin will handle. This number <strong>doesn't</strong> represent the stereo or mono-ness of the audio inputs.</td>
     </tr>
     <tr>
       <td><code>audioOut</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>The number of distinct audio outputs the plugin will handle. This number <strong>doesn't</strong> represent the stereo or mono-ness of the audio outputs.</td>
     </tr> 
     <tr>
@@ -256,12 +253,12 @@ var pluginConf = {
     </tr>
     <tr>
       <td><code>canvas.width</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>Canvas width. Mandatory if <code>canvas</code> object is defined.</td>
     </tr>
     <tr>
       <td><code>canvas.height</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>Canvas height. Mandatory if <code>canvas</code> object is defined.</td>
     </tr>
     <tr>
@@ -271,12 +268,12 @@ var pluginConf = {
     </tr>
     <tr>
       <td><code>div.width</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>Div width. Mandatory if <code>div</code> object is defined.</td>
     </tr>
     <tr>
       <td><code>div.height</code></td>
-      <td>integer ≥ 0</td>
+      <td>int ≥ 0</td>
       <td>Div height. Mandatory if <code>div</code> object is defined.</td>
     </tr> 
   </tbody>
@@ -314,7 +311,7 @@ var initPlugin = function(initArgs) {
 
 };</code></pre>
 
-  <p><code>initPlugin</code> is the plugin constructor function. When a new plugin instance is created by the host, something along the line of <code>var pluginInstance = new initPlugin(args)</code> is executed. This function is responsible of creating a <em>plugin instance</em>. This includes loading resources, when needed, initializing the plugin, and changing the state of the plugin when the initialization phase is over (see the <a href="#plugin_state">Plugin State section</a>)</p>
+  <p><code>initPlugin</code> is the plugin constructor function. When a new plugin instance is created by the host, <code>new</code> is called on <code>initPlugin</code> to initialize a new instance object. This function is therefore responsible of creating a <em>plugin instance</em>. This includes loading resources, when needed, initializing the plugin, and changing the state of the plugin when the initialization phase is over (see the <a href="#plugin_state">Plugin State section</a>)</p>
   <p>We will examine the arguments passed to this function later, in the <a href="#arguments">Plugin Arguments section</a>.
   </p>
 
@@ -383,126 +380,79 @@ var initPlugin = function(initArgs) {
 
   </section>
 
+    <section id="arguments">
+      <h3>Plugin arguments</h3>
 
-  <section id="load_resources">
+      <pre><code data-language="javascript">
+/* Plugin name */
+var name = initArgs.name;
 
-  <h3>Initializing and loading resources</h3>
+/* Unique id of this instance */
+var id = initArgs.id;
 
-  <p>Since most plugins need to load resources, such as images, impulse files or other scripts before being fully operational, the constructor is the place where to load resources asynchronously.</p>
-
-  <p>A plugin can load its resources anyway it likes. In these examples the <a>Requirejs</a> library, along with the <a>requirejs-plugins</a> modules is used to load additional images and scripts. Additionally, the <a>Hyacinth Host</a> project includes Requirejs and requirejs-plugins, so a plugin can start using them right away.</p>
-
-  <h4>Example Local and non-local resources with Require</h4>
-
-  <p><em>TODO head-up This is not a guide to Requirejs: if you want to learn Requirejs, please refer to <a>their documentation</a></em> Resources can be local (relative to the plugin subdirectory URL) or non-local. To specify a local resource, we call the <code>toUrl</code> method of the require object we specified as a dependency in the initial define call.</p>
-
-  <p>So, if we want to load a script named <code>foo.js</code>, located in the <code>js/</code> directory under the plugin subdirectory, all we have to do is to pass this parameter to require:</p>
-
-  <pre><code data-language="javascript">require.toUrl('js/foo.js')</code></pre>
-
-  <p>If we need to load a script located at the absolute url <code>http://bar.com/bar_lib.js</code> instead, we pass the url string directly to require:</p>
-
-  <pre><code data-language="javascript">'http://bar.com/bar_lib.js'</code></pre>
-
-  <h4>Other (non-script) kinds of resources</h4>
-
-  <p>We might need to load resources that are not scripts. A plugin with a GUI might need to load some images, or some text strings, for example. You are free to write your custom loader, of course. In these examples, we're going to use some of <a>Miller Medeiros’ require-js</a> plugins. So, for instance, an easy way to load an image (or a series of images) and being notified when they’re ready is to use the image plugin. This string, passed as a parameter to the require function, will start loading the PNG image named myImage.png, located in the img directory, relative to your plugin’s subdirectory:</p>
-
-  <pre><code data-language="javascript">'image!'+ require.toUrl('./img/myImage.png')</code></pre>
-
-  <h4>Callbacks and errbacks</h4>
-
-  <p>When all the resources passed to the require function are successfully loaded, a callback function is called, and you can happily start doing whatever your plugin needs to work. If the plugin requested a canvas in its pluginConf, this is the time to clear it and start drawing on it (clearing is important, because the host pre-draws a brief message on it, stating that the plugin is loading. If you want to implement your own splash screen, just clear the canvas and draw on it immediately after initPlugin is called).</p>
-
-  <p>This callback, which we will call the success callback, is the second parameter of the require function, after the resource array. In this example, the success callback is coded like this:</p>
-
-  <pre><code data-language="javascript">function () {
-      // require callback
-      var resources = arguments;
-      pluginFunction.call (this, args, resources);
-  }.bind(this),</code></pre>
-
-  <p>The callback function is bound to this, since we want it to be bound to the plugin instance object initPlugin is initializing.</p>
-
-  <p>Since the callback’s argument is the loaded resources array, we save the callback’s arguments into the resources variable. We already saved the arguments passed to the constructor (in the line var args = initArgs), so we can call the “real” plugin function, as it was a member of this, passing along the plugin arguments and the resources we just loaded.</p>
-
-  <p>The success callback is called if all the resources load successfully. What if some of them fail to load?
-    The third parameter passed to require is the so-called errback function, a callback on an error event. This is our errback:</p>
-
-  <pre><code data-language="javascript">function (err) {
-      // require errback
-      // call Host interface
-      args.K2HInterface.pluginError (args.id,
-          "Error loading resources");
-  }</code></pre>
-
-  <p>On an error event, what we want to do is to tell the host our plugin had a non-recoverable error and can’t function properly. One side effect of this is that the host draws an error message on the plugin’s canvas, warning the user that something went wrong.
-    To communicate with the plugin, we receive a K2HInterface object with the initPlugin arguments. Here, we tell the host our plugin instance (identified by args.id) had a fatal error, and set a custom message explaining what the error was.</p>
-
-  <p>There’s a lot of things one can do, in an error event. In this case, the offending resource(s) remain defined and all the following require calls made by other future instances of the plugin will automatically fail.
-    If you want the future instances of the plugin to try to re-load the resources that caused the error, you might want to undefine the offending resources.
-    To obtain this, you have to find the offending resources ids and undefine them with something like requirejs.undef(failedId)</p>
-
-  </section>
-
-  <section id="main">
-  <h3>The main plugin function</h3>
-
-<pre><code data-language="javascript">
-var pluginFunction = function (args, resources) {
-    /* ... */
-};
-</code></pre>
-
-
-  <p>A plugin function is not strictly required by the specification, but it’s good practice to separate the constructor / loader function from the real plugin definition. In the following sections, we will analyze how a plugin works (and how it can use the audio stream, the OSC handler and the canvas initialized by the host).</p>
-  </section>
-
-  <section id="arguments">
-    <h3>Plugin arguments and resources</h3>
-
-    <pre><code data-language="javascript">
-// Plugin name
-this.name = args.name;
-// Unique id of this instance
-this.id = args.id;
-// get a resource loaded in initPlugin
-var myImage = resources[0];</code></pre>
-
-    <p>Each plugin instance gets an initArgs object from the host. In this example, the initPlugin constructor passes this object to the pluginFunction as the first argument, which we call args.</p>
-
-    <p>The first arguments we will analyze are args.name and args.id. The first is the name of the plugin. It corresponds to the plugin name, as defined in the plugin subdirectory in the repository.</p>
-
-    <p>The second is the id of this particular instance of the plugin. It is an unique id, generated by the host. Since many instances of the same plugin can coexist in the same host session, their name will be the same for any plugin of a given kind, but their id will be unique and will identify a particular instance of a given plugin.</p>
-
-    <p>Resources are passed too, in array form (the resources array). They’re already loaded and ready to use, so you can assign them to a variable and use them as you wish.</p>
-
-    <h3>Audio in and out nodes</h3>
-
-<pre><code data-language="javascript">
-/* Same as audioIn, audioOut */
-var nOfInChannels = args.audioSources.length;
-var nOfOutChannels = args.audioDestinations.length;
+/* Length same as audioIn, audioOut */
+var nOfInChannels = initArgs.audioSources.length;
+var nOfOutChannels = initArgs.audioDestinations.length;
     
 /* AudioNode arrays */
-this.audioSources = args.audioSources;
-this.audioDestinations = args.audioDestinations;
+var audioSources = initArgs.audioSources;
+var audioDestinations = initArgs.audioDestinations;
     
 /* Main AudioContext */
-this.context = args.audioContext;
+var context = initArgs.audioContext;
 </code></pre>
 
-    <h4>Sources and destinations</h4>
+      <p>Each plugin instance gets an initArgs object from the host. The arguments passed from the host to the plugin instance are described in the following table:</p>
 
-    <p>The args object contains the audio sources and audio destinations of the plugin, if requested in the configuration object. Each one of these arguments, called <code>audioSources</code> and <code>audioDestinations</code>, is an array of AudioNode objects. Audio sources and destinations are created by the host every time a plugin is instantiated (so, they’re instance-specific) and they are connected automatically to other plugins’ input or output by the host, at the user’s discretion.</p>
+      <table class="table table-bordered table-hover table-striped">
+      <caption>initArgs arguments</caption>
+      <thead>
+        <tr>
+          <th> Parameter name</th>
+          <th> Type</th>
+          <th> Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>id</code></td>
+          <td>string</td>
+          <td>This is the instance's unique identifier, generated by the host.</td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td>string</td>
+          <td>This is the plugin name, loaded by the host. Two distinct instances of the same plugin will have the same name but different ids.</td>
+        </tr>
+        <tr>
+          <td><code>audioSources</code></td>
+          <td>Array</td>
+          <td>An array of AudioSources. Its length must correspond to <code>pluginConf.audioIn</code>. An AudioSource has not to be an Web Audio API AudioNode, but it should respect the <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section">Audio Node interface</a>.</td>
+        </tr>
+        <tr>
+          <td><code>audioDestinations</code></td>
+          <td>Array</td>
+          <td>An array of AudioDestinations. Its length must correspond to <code>pluginConf.audioOut</code>. An AudioDestinations has not to be an Web Audio API AudioNode, but it should respect the <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section">Audio Node interface</a>.</td>
+        </tr>
+        <tr>
+          <td><code>audioContext</code></td>
+          <td>Object</td>
+          <td>An object, representing the real-time main Audio context, generated by the host. The audioContext has not to be an Web Audio API AudioNode, but it should respect the <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section">Audio Context interface</a>.</td>
+        </tr>
+        <tr>
+          <td><code>hostInterface</code></td>
+          <td>Object</td>
+          <td>An object that contains the methods used by the plugin instance to communicate with the host. See a description of the methods in the <a href="http://localhost:8000/hyacinth/docs.html#host_interface"><em>Interfacing with the host</em> section</a>.</td>
+        </tr>
+        <tr>
+          <td><code>OSCHandler</code></td>
+          <td>Object</td>
+          <td>An object that contains the methods used by the plugin instance to communicate with other plugins via <a>Open Sound Control</a>. Read more about OSC support in the host in the <a href="http://localhost:8000/hyacinth/docs.html#osc"><em>Communication with OSC</em> section</a>.</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <p>Important: At the moment, audio sources and destinations are initialized as GainNode objects by the host. This may change in the future, so don’t assume they will always be. Plus, a well-behaved plugin must not change the gain value of its sources and destinations. If you need to apply gain, just create one or more GainNode inside your plugin and connect them to the sources / destinations.</p>
-
-    <h4>Audio context</h4>
-
-    <p>The audioContext attribute in the arguments object contains the main audioContext (initialized by the host). Plugins should use this context to create their nodes and to set routing between them and the source / destination nodes.
-    Plugins must never connect directly to the destination node of the audioContext.</p>
-    </section>
+  </section>
 
     <section id="osc">
     <h3>Sending and receiving OSC</h3>
@@ -542,24 +492,6 @@ this.oscClient.sendOSC(msg);
     <p>It’s likely that this behaviour will change, in the future. Until then, a plugin must filter out the messages it wants to ignore in the OSC callback.</p>
 
     <p>OSC is based on KievII library OSC implementation. The code is still under active developement, any contribution to improve it are accepted and encouraged.</p>
-  </section>
-
-  <section id="gui">
-
-    <H3>Graphical interface</H3>
-
-    <pre><code data-language="javascript">
-    // KievII is already loaded
-    // args.canvas is defined because pluginConf.width / height are
-    this.ui = new K2.UI ({type: 'CANVAS2D', target: args.canvas});
-    </code></pre>
-
-    <p>If the canvas argument is defined in the pluginConf (along with its width and height attributes), an HTML5 canvas element will be present in args.canvas. You will need to clear the canvas before using it, since the host will pre-draw a “Loading {plugin Name}” message on it before calling the plugin constructor.
-    </p>
-    <p>The plugin is free to attach events to the element and draw on its context. For a quick tutorial on how to draw on canvas, take a look here.</p>
-
-    <p>Additionally, KievII Library, an audio-app support library from yours truly, is already preloaded and ready to use. Feel free to take a look at the examples and use it to quickly set up your plugin GUI.</p>
-
   </section>
 
       <hr>
