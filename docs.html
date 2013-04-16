@@ -32,7 +32,7 @@
                                    <link rel="shortcut icon" href="../assets/ico/favicon.png">
   </head>
 
-  <body body data-spy="scroll" data-target=".hy-docs-sidebar">
+  <body body data-spy="scroll" data-offset="85" data-target=".hy-docs-sidebar">
 
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
@@ -176,19 +176,20 @@ define(['kievII', 'require'], function(k2, require) {
 
 
     <section id="conf_object">
-    <h3>the pluginConf configuration object</h3>
+    <h3>The pluginConf configuration object</h3>
 
     <pre><code data-language="javascript">
 var pluginConf = {
     version: {
       major: 1,
       minor: 2,
-      maintenance: 3
+      maintenance: 3,
+      desc: "Foo v1.2.3 (codename Bar)"
     },
     osc: true,   // OSC enabled
     audioIn: 4,  // Number of audio inputs
     audioOut: 1, // Number of audio outputs
-    canvas: {    // Canvas real estate for the plugin
+    canvas: {    // Request a canvas for the GUI
         width: 488,
         height: 164
     }
