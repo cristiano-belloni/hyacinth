@@ -186,7 +186,8 @@ var pluginConf = {
     osc: true,   // OSC enabled
     audioIn: 4,  // Number of audio inputs
     audioOut: 1, // Number of audio outputs
-    canvas: {    // Request a canvas for the GUI
+    ui: {    // Request a canvas for the GUI
+        type: 'canvas',
         width: 488,
         height: 164
     }
@@ -247,35 +248,25 @@ var pluginConf = {
       <td>The number of distinct audio outputs the plugin will handle. This number <strong>doesn't</strong> represent the stereo or mono-ness of the audio outputs.</td>
     </tr> 
     <tr>
-      <td><code>canvas</code></td>
+      <td><code>ui</code></td>
       <td>object</td>
-      <td>If this object is defined, the host will create an instance-specific <a>HTML5 canvas element</a>, which will be passed to the contructor function every time a new plugin instance is initialized. Incompatible with the <code>div</code> option.</td>
+      <td>If this object is defined, the host will create an HTML5 element to pass to the plugin instance.</td>
     </tr>
     <tr>
-      <td><code>canvas.width</code></td>
+      <td><code>ui.type</code></td>
+      <td>string</td>
+      <td>If this string is <code>canvas</code>, an instance-specific <a>HTML5 canvas element</a>, will be passed to the constructor function every time a new plugin instance is initialized. If this string is <code>div</code>, a <a>div</a> will be passed instead. The element passed should be of size <code>ui.width</code> &times; <code>ui.height</code>, if these are defined.</td>
+    </tr>
+    <tr>
+      <td><code>ui.width</code></td>
       <td>int ≥ 0</td>
-      <td>Canvas width. Mandatory if <code>canvas</code> object is defined.</td>
+      <td>UI width.</td>
     </tr>
     <tr>
-      <td><code>canvas.height</code></td>
+      <td><code>ui.height</code></td>
       <td>int ≥ 0</td>
-      <td>Canvas height. Mandatory if <code>canvas</code> object is defined.</td>
+      <td>UI height.</td>
     </tr>
-    <tr>
-      <td><code>div</code></td>
-      <td>object</td>
-      <td>If this object is defined, the host will create an instance-specific <a>div</a>, which will be passed to the contructor function every time a new plugin instance is initialized. Incompatible with the <code>canvas</code> option.</td>
-    </tr>
-    <tr>
-      <td><code>div.width</code></td>
-      <td>int ≥ 0</td>
-      <td>Div width. Mandatory if <code>div</code> object is defined.</td>
-    </tr>
-    <tr>
-      <td><code>div.height</code></td>
-      <td>int ≥ 0</td>
-      <td>Div height. Mandatory if <code>div</code> object is defined.</td>
-    </tr> 
   </tbody>
 </table>
 
