@@ -79,7 +79,7 @@
               <li><a href="#module_structure">Structure</a></li>
               <li><a href="#conf_object">The pluginConf configuration object</a></li>
               <li><a href="#constructor">The initPlugin constructor</a></li>
-              <li><a href="#plugin_state">Plugin State</a></li>
+              <li><a href="#plugin_status">Plugin Status</a></li>
               <li><a href="#host_interface">Interfacing with the Host</a></li>
               <li><a href="#arguments">Plugin arguments</a></li>
               <li><a href="#osc">Communication with OSC</a></li>
@@ -292,34 +292,34 @@ var initPlugin = function(initArgs) {
           [...]
       */
 
-      /* Fatal error occurred: set the state in HyInterface */
-      args.HyInterface.setInstanceState ('fatal', {description: errorMsg});
+      /* Fatal error occurred: set the status in hostInterface */
+      args.hostInterface.setInstanceStatus ('fatal', {description: errorMsg});
       return;
     }
 
     /* Plugin is ready */
-    args.HyInterface.setInstanceState ('ready');
+    args.hostInterface.setInstanceStatus ('ready');
 
 };</code></pre>
 
-  <p><code>initPlugin</code> is the plugin constructor function. When a new plugin instance is created by the host, <code>new</code> is called on <code>initPlugin</code> to initialize a new instance object. This function is therefore responsible of creating a <em>plugin instance</em>. This includes loading resources, when needed, initializing the plugin, and changing the state of the plugin when the initialization phase is over (see the <a href="#plugin_state">Plugin State section</a>)</p>
+  <p><code>initPlugin</code> is the plugin constructor function. When a new plugin instance is created by the host, <code>new</code> is called on <code>initPlugin</code> to initialize a new instance object. This function is therefore responsible of creating a <em>plugin instance</em>. This includes loading resources, when needed, initializing the plugin, and changing the status of the plugin when the initialization phase is over (see the <a href="#plugin_status">Plugin Status section</a>)</p>
   <p>We will examine the arguments passed to this function later, in the <a href="#arguments">Plugin Arguments section</a>.
   </p>
 
   </section>
 
-  <section id="plugin_state">
+  <section id="plugin_status">
 
-    <h3>Plugin State</h3>
+    <h3>Plugin Status</h3>
 
-    <p>Every plugin instance, in its lifetime, has a state, assigned at init-time by the host. Everytime a plugin changes state, the host is notified via the <a href="#host_interface">Host Interface</a> mechanism. The possible states of a plugin are listed in the following table:
+    <p>Every plugin instance, in its lifetime, has a status, assigned at init-time by the host. Everytime a plugin changes status, the host is notified via the <a href="#host_interface">Host Interface</a> mechanism. The possible statuses of a plugin are listed in the following table:
     </p>
 
     <table class="table table-bordered table-hover table-striped">
-      <caption>plugin instance states</caption>
+      <caption>plugin instance statuses</caption>
       <thead>
         <tr>
-          <th> State</th>
+          <th> Status</th>
           <th> Meaning</th>
           <th> Behaviour</th>
         </tr>
@@ -328,17 +328,17 @@ var initPlugin = function(initArgs) {
         <tr>
           <td><code>init</code></td>
           <td>The plugin instance is non-functional because it is initializing or loading resources. It can became functional later.</td>
-          <td>This is the default state on plugin creation. The plugin is not functional, awaiting for its initialization tasks to complete. This is a temporary state, which will be changed as soon the initialization is complete or a fatal error is encountered. The host can display a temporary message warning the user that the plugin is being initialized.</td>
+          <td>This is the default status on plugin creation. The plugin is not functional, awaiting for its initialization tasks to complete. This is a temporary status, which will be changed as soon the initialization is complete or a fatal error is encountered. The host can display a temporary message warning the user that the plugin is being initialized.</td>
         </tr>
         <tr>
           <td><code>fatal</code></td>
           <td>The plugin instance is non-functional because it encountered a non-recoverable error. The plugin instance will never be functional.</td>
-          <td>This state is the fatal error state. The plugin instance encountered an un-recoverable error during its initialization or at run time. This is a "terminal" state, which should never be changed again by the plugin instance. The host can display a message warning the user that the plugin instance is in an error state, or destroy the plugin object right away.</td>
+          <td>This status is the fatal error status. The plugin instance encountered an un-recoverable error during its initialization or at run time. This is a "terminal" status, which should never be changed again by the plugin instance. The host can display a message warning the user that the plugin instance is in an error status, or destroy the plugin object right away.</td>
         </tr>
         <tr>
           <td><code>ready</code></td>
           <td>The plugin instance is functional and ready to be used.</td>
-          <td>After completing initialization, and having not encountered a fatal error, a plugin instance signals that it is in the ready state. The plugin is functional and ready to be used. This state can change to the fatal state if a fatal error is encountered, or back to the init state if the plugin needs to perform offline operations that would put it in a non-functional state (loading additional resources, or a long non-real-time calculation, for example).</td>
+          <td>After completing initialization, and having not encountered a fatal error, a plugin instance signals that it is in the ready status. The plugin is functional and ready to be used. This status can change to the fatal status if a fatal error is encountered, or back to the init status if the plugin needs to perform offline operations that would put it in a non-functional status (loading additional resources, or a long non-real-time calculation, for example).</td>
         </tr>
       </tbody>
     </table>
@@ -348,25 +348,31 @@ var initPlugin = function(initArgs) {
   <section id="host_interface">
     <h3>Interfacing with the Host</h3>
     <p>
-      A plugin instance can communicate with the host, to notify a change on its <a href="plugin_states">state</a> or to get informations about other plugins.
+      A plugin instance can communicate with the host, to notify a change on its <a href="plugin_status">status</a> or to get informations about other plugins.
     </p>
     <p>
       An interface object is passed in the arguments (read more about the arguments passed to a plugin instance in the <a href="#arguments">Plugin Arguments section</a>). The object exposes these functions:
     </p>
 
     <dl>
-      <dt><h4>setInstanceState</h4></dt>
-      <dd><h5>Parameters</h5> <code><em>string</em> state, <em>object</em> options</code></dd>
-      <dd><h5>Return value</h5> <em>none</em></dd>
-      <dd><h5>Description</h5> <p>Set the instance state, as described in <a href="#plugin_state">this section</a>. Accepted values for the parameter a re <code>init</code>, <code>fatal</code> and <code>ready</code>. If <code>state === 'fatal'</code>, <code>options.description</code> can be specified to provide a description for the fatal event.</p></dd>
+      <dt><h4>setInstanceStatus</h4></dt>
+      <dd><h5>Parameters</h5> <code><em>string</em> status, <em>object</em> options</code></dd>
+      <dd><h5>Return value</h5> <code><em>boolean</em></code></dd>
+      <dd><h5>Description</h5> <p>Sets the instance status, as described in <a href="#plugin_status">this section</a>. Accepted values for the parameter a re <code>init</code>, <code>fatal</code> and <code>ready</code>. If <code>status</code> is equal to <code>'fatal'</code>, <code>options.description</code> can be specified to provide a description for the fatal event. Returns <code>true</code> if the status change succeeded, <code>false</code> otherwise.</p></dd>
     </dl>
 
+    <dl>
+      <dt><h4>getInstanceStatus</h4></dt>
+      <dd><h5>Parameters</h5> <em>none</em> </dd>
+      <dd><h5>Return value</h5> <code><em>string</em></code></dd>
+      <dd><h5>Description</h5> <p>Gets the instance status, as described in <a href="#plugin_status">this section</a>.</p></dd>
+    </dl>
 
     <dl>
-      <dt><h4>getOSCInstances</h4></dt>
+      <dt><h4>getOSCEnabled</h4></dt>
       <dd><h5>Parameters</h5> <em>none</em></dd>
-      <dd><h5>Return value</h5> an <code>Array</code> of OSC-enabled <code>pluginInstanceDesc</code>, where <code>pluginInstanceDesc.id</code> is the unique id of the instance, <code>pluginInstanceDesc.pluginName</code> is the instance's plugin name and <code>pluginInstanceDesc.pluginCustomName</code> is the instance's custom name (if the host doesn't support user-defined instance names, this is equal to <code>pluginInstanceDesc.pluginName</code>.</dd>
-      <dd><h5>Description</h5> <p>Get a list of OSC-enabled plugin instances present in the current session. A plugin instance can request such a list for OSC discovery. By convention, the host should return only instances in their <code>ready</code> state. The field <code>pluginInstanceDesc.pluginCustomName</code> can be specified if the host supports custom (user-defined) names for instances. Otherwise, it should be equal to <code>pluginInstanceDesc.pluginName</code>. <code>pluginInstanceDesc.id</code> is an id, generated by the host, that uniquely identifies a given plugin instance.</p></dd>
+      <dd><h5>Return value</h5> an <code>Array</code> of OSC-enabled <code>pluginInstanceDesc</code>, where <code>id</code> is the unique id of the instance, <code>pluginName</code> is the instance's plugin name and <code>customName</code> is the instance's custom name (if the host doesn't support user-defined instance names, this is equal to <code>pluginName</code>.</dd>
+      <dd><h5>Description</h5> <p>Get a list of OSC-enabled plugin instances present in the current session. A plugin instance can request such a list for OSC discovery. By convention, the host should return only instances in their <code>ready</code> status. The field <code>customName</code> can be specified if the host supports custom (user-defined) names for instances. Otherwise, it should be equal to <code>pluginName</code>. <code>id</code> is an id, generated by the host, that uniquely identifies a given plugin instance.</p></dd>
     </dl>
 
   </section>
