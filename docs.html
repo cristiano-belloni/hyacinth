@@ -48,7 +48,6 @@
               <li><a href="hyacinth.html">Hyacinth</a></li>
               <li><a href="#host">Host</a></li>
               <li><a href="#plugins">Plugins</a></li>
-              <li><a href="#alone">Standalone</a></li>
               <li class="active"><a href="#">Docs</a></li>
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Contact <b class="caret"></b></a>
@@ -105,32 +104,45 @@
       
       <h3>Structure of a plugin repository</h3>
 
-      <p>A Hyacinth collection of plugins usually is stored in a Github repository. Every plugin in a repository is contained in its subdirectory. Plugin subdirectories are located under an always-present first-level subdirectory, called <code>hy-plugins</code>.</p>
+      <p>A Hyacinth collection of plugins usually is stored in a Github repository. Every plugin in a repository is contained in its subdirectory. Plugin subdirectories are first-level subdirectories of the <tt>hy-plugins</tt>, which is always present under the repository root.</p>
 
-      <p>Each plugin subdirectory name corresponds to the name of the plugin. That’s how an Hyacinth host figures out the plugin name. If, for example, you are developing a plugin you want to call “Foo”, its plugin subdirectory, relative to the repository root, will be <code>/hy-plugins/Foo/</code></p>
+      <p>Every file in with extension <code>.js</code>, located directly under a plugin subdirectory, is considered a plugin. For example, <tt>foo.js, bar.js, baz-chorus.js, baz-delay.js and baz-instruments.js</tt> will all be considered Hyacinth plugins by the Host, when accessing the fictional git repository illustrated in the schema below.</p>
 
-      <p>A Hyacinth plugin is required to have a javascript module file, located under its plugin subdirectory, whose name is the plugin's name and whose extension is <code>.js</code>. So, the module file for your Foo plugin will be <code>/plugins/Foo/Foo.js</code></p>
+      <p>Other files, typically auxiliary resources loaded at init-time by the plugins, can be stored in subdirectories of the plugin subdirectories. The Host must ignore these files. <tt>foo-image.png, aux-script.js and instr-routines.js</tt> will be all be ignored by the Host, in the schema below.</p>
 
-      <p>Other files can be stored in the plugin subdirectory. Their name and location can be chosen at will, as long as they’re under your plugin subdirectory, since they have no particular meaning for the host and it will ignore them.</p>
-
-      <p>See an example of plugin repository schema below (or take a look at the <a>standard plugin repository</a>):</p>
+      <p>A working example of a plugin repository on GitHub is <a>host-plugins</a>.</p>
 
       <pre>
 Repository root
 |
 +---hy-plugins (always present)
     |
-    +---Foo (plugin subdir for the Foo plugin)
+    +---foo
     |   |
-    |   +--- Foo.js (module file for Foo)
+    |   +--- foo.js [plugin]
     |   |
     |   +--- assets
     |        |
-    |        +---fooImage.png
+    |        +--- foo-image.png
     |
-    +---Bar (plugin subdir for the Bar plugin)
+    +---bar
+    |   |
+    |   +--- bar.js [plugin]
+    |
+    +---baz
         |
-        +--- Bar.js (module file for Bar)</pre>
+        +--- baz-chorus.js [plugin]
+        |
+        +--- baz-delay.js [plugin]
+        |
+        +--- baz-instrument.js [plugin]
+        |
+        +--- assets
+             |
+             +--- aux-script.js
+             |
+             +--- instr-routines.js
+      </pre>
             
       </section>
       
@@ -139,12 +151,14 @@ Repository root
 
       <h3>Structure of a plugin module file</h3>
 
-      <p>A Hyacinth plugin module file is a <a>Javascript AMD module</a>. When loaded by the host, it immediately returns an object composed by the plugin’s configuration object, called <code>pluginConf</code>, and the plugin constructor function, called <code>initPlugin</code>. The plugin module is dependent to the AMD <code>require</code> function, which it can use to load its asynchronous resources in autonomy.</p>
+      <p>A Hyacinth plugin module file is a javascript <a href="https://github.com/amdjs/amdjs-api/wiki/AMD">AMD module</a>. The AMD Implementation used must provide a <a href="https://github.com/amdjs/amdjs-api/wiki/AMD">loader-plugin</a> mechanism. The plugins supported must include at least an image plugin (<tt>!image</tt>) and a font plugin (<tt>!font</tt>). The AMD implementation must provide a <code>require</code> function. In this respect, the <a href="http://requirejs.org/">requirejs</a> and <a href="https://github.com/millermedeiros/requirejs-plugins">requirejs-plugins</a> projects provide a suitable implementation and will be used in the <a href="#host">hyacinth-host</a> and <a href="#plugins">hyacinth-plugins</a> projects.</p>
+
+      <p>When a plugin is loaded by the host, it immediately returns an object composed by the plugin’s configuration object, called <code>pluginConf</code>, and the plugin constructor function, called <code>initPlugin</code>.</p>
 
       <p>Here' s an example of a bare-bones plugin module file:</p>
 
       <pre><code data-language="javascript">
-define(['require'], function(k2, require) {
+define(['require'], function(require) {
   /* This object is returned to the host as soon as
    * the plugin is loaded */
   var pluginConf = {
@@ -153,7 +167,7 @@ define(['require'], function(k2, require) {
 
   /* This function is called by the host every time a plugin INSTANCE
   * is required [e.g: requested by the Add Plugin button] */
-  var initPlugin = function(initArgs) {
+  var initPlugin = function (initArgs) {
     /* ... */
   };
             
@@ -166,11 +180,6 @@ define(['require'], function(k2, require) {
       </code></pre>
 
     </section>
-
-
-    <hr>
-
-
 
     <section id="conf_object">
     <h3>The pluginConf configuration object</h3>
@@ -186,7 +195,7 @@ var pluginConf = {
     osc: true,   // OSC enabled
     audioIn: 4,  // Number of audio inputs
     audioOut: 1, // Number of audio outputs
-    ui: {    // Request a canvas for the GUI
+    ui: {    // Request a 488x164 canvas for the GUI
         type: 'canvas',
         width: 488,
         height: 164
@@ -283,11 +292,11 @@ var initPlugin = function(initArgs) {
         [...]
     */
 
-    /*  Load resources
+    /*  Load resources, in case
         [...]
     */
 
-    if (fatalError) {
+    if (fatalErrorOccurred) {
       /*  Cleanup code
           [...]
       */
@@ -452,43 +461,58 @@ var context = initArgs.audioContext;
   </section>
 
     <section id="osc">
-    <h3>Sending and receiving OSC</h3>
+    <h3>Communication with OSC</h3>
 
     <pre><code data-language="javascript">
-/* The OSC handler */
-this.OSChandler = args.OSCHandler;
-// Callback. Called when an OSC message arrives
-var oscCallback = function (message) {
-    console.log (this.id + " received message: ", message);
-    var dest = message[0];      // osc path
-    var argument1 = message[1]; // parse the message array
-};
+// The plugin OSC handler
+var handler = args.OSCHandler;
 
-// Register the client
-this.oscClient = this.OSChandler.registerClient (
-    { clientID : this.id,
-      oscCallback : oscCallback.bind (this) }
-);
-// You can send osc messages with:
-var msg = new K2.OSC.Message('/path/of/outbound/message', arg1, arg2, argN);
-this.oscClient.sendOSC(msg);
+var destinationFilter = args.id;
+
+// This callback will be called whenever an OSC message is sent
+
+var oscCallback = function (dest, message) {
+
+  // Filter the destination based on our ID
+
+  if (dest === destinationFilter) {
+
+    // message[0] = dest
+    console.log ("plugin received message: ", message);
+  }
+
+};
+       
+// Register the callback. optionally bind it to this
+// to be able to operate on the plugin instance object's members.       
+
+handler.setCallback(oscCallback.bind(this));
+
+// Send an OSC message:
+
+handler.sendOSCMessage('/path/of/outbound/message', arg1, arg2, ..., argN);
     </code></pre>
 
+    <p><a href="http://opensoundcontrol.org/">Open Sound Control</a> messages are not connected from a plugin instance to a particular other plugin instance, like audio inputs / outputs are.
+    This means that when a plugin instance sends an OSC message, every other instance of every other plugin present in the session will receive the message. OSC messages are always broadcast. A plugin must be able send and receive OSC messages to and from other plugins present in the session. Optionally, the Host can send and receive OSC messages to and from other remote OSC-enabled programs and/or servers.</p>
+
+    <p>An <tt>hyOSCHandler</tt> object is created by the host and passed to the constructor through <code>args.OSCHandler</code>.</p>
+
+    <p>A plugin can register a callback that will be called whenever an OSC message is sent by other plugins. The callback is registered calling the <tt>hyOSCHandler</tt>'s object <code>setCallback</code> method, with the callback function as argument. This method can be called multiple times to update the callback function. Previous callbacks will be discarded.</p>
+
+    <p>The callback function will receive two parameters, <code>dest</code> and <code>message</code>.</p>
+    <p><code>dest</code> is shorthand for <code>message[0]</code>. It represents the OSC Address Pattern as described in the <a href="http://opensoundcontrol.org/spec-1_0">OSC spec</a>.</p>
+    <p><code>message</code> is an array, composed by the OSC Address Pattern in its first (0-th) position, plus a variable-length sequence of OSC Arguments in the following positions.</p>
+
+    <p>It's important to stress that the callback will receive <strong>every</strong> OSC message sent by other plugins. It's up to the plugin to filter the message it is interested in, and reject the others. An OSC callback must return as soon as possible, in a well-behaved plugin. Complex jobs should not be done inside OSC callbacks, or the overall performance will suffer.</p>
+
+    <p>A plugin can send an OSC message by calling the <tt>hyOSCHandler</tt>'s object <code>sendOSCMessage</code> method. The first argument of the variadic function is the OSC Address Pattern, while the following arguments are the OSC Arguments of the message.</p>
+
     
-    <p>A plugin can send and receive OSC messages to and from other plugins and to and from a remote OSC-capable host in the net (using KievII’s OSCProxy server).</p>
 
-    <p>A KievII OSCHandler object is created by the host and passed to the constructor through args.OSCHandler.</p>
+    
 
-    <p>The first thing a plugin will do is to obtain an oscClient object and set a callback for incoming OSC messages, calling the registerClient method of the OSCHandler.</p>
-
-    <p>A plugin can also create an OSC message (initializing a new K2.OSC.Message object) and send that message using the sendOSC method of the previously-mentioned oscClient.</p>
-
-    <p>OSC messages are not connected from a plugin instance to a particular other plugin instance, like audio inputs / outputs are.
-        This means that when a plugin instance sends an OSCMessage with the sendOSC method, every other instance of every other plugin present in the session will receive the message. OSC messages are always broadcast.</p>
-
-    <p>It’s likely that this behaviour will change, in the future. Until then, a plugin must filter out the messages it wants to ignore in the OSC callback.</p>
-
-    <p>OSC is based on KievII library OSC implementation. The code is still under active developement, any contribution to improve it are accepted and encouraged.</p>
+  
   </section>
 
       <hr>
