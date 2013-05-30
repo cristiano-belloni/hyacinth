@@ -72,8 +72,6 @@
         <div class="span3">
           <div data-spy="affix" class="well sidebar-nav hy-docs-sidebar">
             <ul class="nav nav-list">
-              <li class="nav-header">Plugin Repositories</li>
-              <li class="active"><a href="#repo_structure">Structure of a plugin repository</a></li>
               <li class="nav-header">Plugin modules</li>
               <li><a href="#module_structure">Structure</a></li>
               <li><a href="#conf_object">The pluginConf configuration object</a></li>
@@ -98,53 +96,6 @@
       </div>
 
       <hr/>
-
-      <section id="repo_structure">
-      <h2>Plugin Repositories</h2>
-      
-      <h3>Structure of a plugin repository</h3>
-
-      <p>A Hyacinth collection of plugins usually is stored in a Github repository. Every plugin in a repository is contained in its subdirectory. Plugin subdirectories are first-level subdirectories of the <tt>hy-plugins</tt>, which is always present under the repository root.</p>
-
-      <p>Every file in with extension <code>.js</code>, located directly under a plugin subdirectory, is considered a plugin. For example, <tt>foo.js, bar.js, baz-chorus.js, baz-delay.js and baz-instruments.js</tt> will all be considered Hyacinth plugins by the Host, when accessing the fictional git repository illustrated in the schema below.</p>
-
-      <p>Other files, typically auxiliary resources loaded at init-time by the plugins, can be stored in subdirectories of the plugin subdirectories. The Host must ignore these files. <tt>foo-image.png, aux-script.js and instr-routines.js</tt> will be all be ignored by the Host, in the schema below.</p>
-
-      <p>A working example of a plugin repository on GitHub is <a>host-plugins</a>.</p>
-
-      <pre>
-Repository root
-|
-+---hy-plugins (always present)
-    |
-    +---foo
-    |   |
-    |   +--- foo.js [plugin]
-    |   |
-    |   +--- assets
-    |        |
-    |        +--- foo-image.png
-    |
-    +---bar
-    |   |
-    |   +--- bar.js [plugin]
-    |
-    +---baz
-        |
-        +--- baz-chorus.js [plugin]
-        |
-        +--- baz-delay.js [plugin]
-        |
-        +--- baz-instrument.js [plugin]
-        |
-        +--- assets
-             |
-             +--- aux-script.js
-             |
-             +--- instr-routines.js
-      </pre>
-            
-      </section>
       
       <section id="module_structure">
       <h2>Plugin modules</h2>
@@ -186,12 +137,7 @@ define(['require'], function(require) {
 
     <pre><code data-language="javascript">
 var pluginConf = {
-    version: {
-      major: 1,
-      minor: 2,
-      maintenance: 3,
-      desc: "Foo v1.2.3 (codename Bar)"
-    },
+    version: '1.2.3',
     osc: true,   // OSC enabled
     audioIn: 4,  // Number of audio inputs
     audioOut: 1, // Number of audio outputs
@@ -223,28 +169,8 @@ var pluginConf = {
     </tr>
     <tr>
       <td><code>version</code></td>
-      <td>object</td>
-      <td>The plugin's version object. Version is expressed as <em>major.minor.patch</em></td>
-    </tr>
-    <tr>
-      <td><code>version.major</code></td>
-      <td>int ≥ 0</td>
-      <td>The version's major number. Must be defined if version is defined.</td>
-    </tr>
-    <tr>
-      <td><code>version.minor</code></td>
-      <td>int ≥ 0</td>
-      <td>The version's minor number. If undefined or null, it will always be compared as lower than other defined minor numbers.</td>
-    </tr>
-    <tr>
-      <td><code>version.patch</code></td>
-      <td>int ≥ 0</td>
-      <td>The version's patch number. If undefined or null, it will always be compared as lower than other defined patch numbers. Can be ignored by the host if minor is undefined or null.</td>
-    </tr>
-    <tr>
-      <td><code>version.desc</code></td>
       <td>string</td>
-      <td>A human-readable (string) description of the version. Can be a codename or a brief description. Has no influence on comparing versions.</td>
+      <td>The plugin's version. Must follow the <a href="http://semver.org">Semantic Versioning Specification</a>.</td>
     </tr>
    <tr>
       <td><code>audioIn</code></td>
@@ -275,6 +201,11 @@ var pluginConf = {
       <td><code>ui.height</code></td>
       <td>int ≥ 0</td>
       <td>UI height.</td>
+    </tr>
+    <tr>
+        <td><code>parameters</code></td>
+        <td>array</td>
+        <td>If this array of parameterDescription objects is defined, the host will create a graphical representation of the host-side parameters and communicate their changes to the plugin, throught the <a>TOBEDEFINED</a> callback. This is mutually exclusive to the ui parameter.</td>
     </tr>
   </tbody>
 </table>
