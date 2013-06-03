@@ -141,11 +141,54 @@ var pluginConf = {
     osc: true,   // OSC enabled
     audioIn: 4,  // Number of audio inputs
     audioOut: 1, // Number of audio outputs
+
+    // At least one between ui or hostParameters must be defined. Both can be defined.
     ui: {    // Request a 488x164 canvas for the GUI
         type: 'canvas',
         width: 488,
         height: 164
+    },
+
+    hostParameters : {
+        enabled: false,
+        parameters: {
+            lfoParm: {
+                name: ['Low-freq oscillator', 'LFO'],
+                label: 'Hz',
+                range: {
+                    min: 4,
+                    default: 8,
+                    max: 20
+                },
+                groupID: 'fxControls'
+            },
+            volParm: {
+                name: 'Volume',
+                range: {
+                    default: 0.5,
+                },
+                groupID: 'ampliControls'
+            },
+            delayTime: {
+                name: 'Delay',
+                label: 'ms',
+                range: {
+                    min: 75,
+                    max: 270
+                },
+                groupID: 'fxControls'
+            }
+        },
+        groups: {
+            ampliControls: {
+                name: ['Amplitude Controls', 'Amp']
+            },
+            fxControls: {
+                name: 'FX'
+            }
+        }
     }
+
 };</code></pre>
 
 <p><code>pluginConf</code> is the plugin configuration object. It describes what the host should provide to the constructor function, through the arguments, in order to create an instance of the plugin.</p>
@@ -203,9 +246,65 @@ var pluginConf = {
       <td>UI height.</td>
     </tr>
     <tr>
-        <td><code>parameters</code></td>
-        <td>array</td>
-        <td>If this array of parameterDescription objects is defined, the host will create a graphical representation of the host-side parameters and communicate their changes to the plugin, throught the <a>TOBEDEFINED</a> callback. This is mutually exclusive to the ui parameter.</td>
+        <td><code>hostParameters</code></td>
+        <td>object</td>
+        <td>If this object is defined, the host will create a graphical representation of the plugin interface, based on this object. hostParameters is mutually exclusive to <code>ui<code/> and has precedence over it.</td>
+    </tr>
+    <tr>
+        <td><code>hostParameters.enabled</code></td>
+        <td>boolean</td>
+        <td>If <code>false</code>, <code>hostParameters</code> is plainly ignored by the host as it was undefined. Use this to activate / deactivate the ui, mantaining the parameter structure untouched. May be ignored by the host.</td>
+    </tr>
+    <tr>
+        <td><code>hostParameters.parameters</code></td>
+        <td>object</td>
+        <td>Map of Param objects. Each object describes a plugin parameter. Each key is an unique parameter ID.</td>
+    </tr>
+    <tr>
+        <td><code>Param.name</code></td>
+        <td>string / array</td>
+        <td>Display name for the parameter. Could be an array of alternative names (suitable for display in various size constraints). If undefined, it defaults to the parameter ID.</td>
+    </tr>
+    <tr>
+        <td><code>Param.label</code></td>
+        <td>string</td>
+        <td>Display label for the parameter. If <code>undefined</code>, it is not shown.</td>
+    </tr>
+    <tr>
+        <td><code>Param.range</code></td>
+        <td>object</td>
+        <td>Range object for the parameter.</td>
+    </tr>
+    <tr>
+        <td><code>Param.range.min</code></td>
+        <td>number</td>
+        <td>Minimum value for the parameter. Must be lesser than or equal to <code>Param.range.max</code>. If <code>undefined</code>, it defaults to 0.</td>
+    </tr>
+    <tr>
+        <td><code>Param.range.max</code></td>
+        <td>number</td>
+        <td>Maximum value for the parameter. If <code>undefined</code>, it defaults to 1.</td>
+    </tr>
+    <tr>
+        <td><code>Param.range.default</code></td>
+        <td>number</td>
+        <td>Default value for the parameter (must be within min - max range, inclusively).  If <code>undefined</code>, it defaults to <code>Param.range.min</code>.</td>
+    </tr>
+    <tr>
+        <td><code>Param.groupID</code></td>
+        <td>string</td>
+        <td>A group, defined in <code>groups</code>, that the parameter is part of. Must be a valid group ID. Can be <code>undefined</code> or <code>null</code>.</td>
+    </tr>
+    <tr>
+        <td><code>groups</code></td>
+        <td>object</td>
+        <td>Map of Group objects. Each object describes a group of parameter. Each key is an unique group ID.</td>
+        <!-- Maybe nested groups with the . operator. Example group1.group2, creates group2, nested into group1 (if valid) -->
+    </tr>
+    <tr>
+        <td><code>Group.name</code></td>
+        <td>string / array</td>
+        <td>Display name for the parameter group. Could be an array of alternative names (suitable for display in various size constraints). If <code>undefined</code>, it defaults to the group ID.</td>
     </tr>
   </tbody>
 </table>
@@ -286,7 +385,8 @@ var initPlugin = function(initArgs) {
   </section>
 
   <section id="host_interface">
-    <h3>Interfacing with the Host</h3>
+    <h2>Interfacing with the Host</h2>
+    <h3>Static interface</h3>
     <p>
       A plugin instance can communicate with the host, to notify a change on its <a href="plugin_status">status</a> or to get informations about other plugins.
     </p>
@@ -314,6 +414,27 @@ var initPlugin = function(initArgs) {
       <dd><h5>Return value</h5> an <code>Array</code> of OSC-enabled <code>pluginInstanceDesc</code>, where <code>id</code> is the unique id of the instance, <code>pluginName</code> is the instance's plugin name and <code>customName</code> is the instance's custom name (if the host doesn't support user-defined instance names, this is equal to <code>pluginName</code>.</dd>
       <dd><h5>Description</h5> <p>Get a list of OSC-enabled plugin instances present in the current session. A plugin instance can request such a list for OSC discovery. By convention, the host should return only instances in their <code>ready</code> status. The field <code>customName</code> can be specified if the host supports custom (user-defined) names for instances. Otherwise, it should be equal to <code>pluginName</code>. <code>id</code> is an id, generated by the host, that uniquely identifies a given plugin instance.</p></dd>
     </dl>
+    <dl>
+      <dt><h4>getParm</h4></dt>
+      <dd><h5>Parameters</h5> <code><em>string</em> id</code></dd>
+      <dd><h5>Return value</h5> <code><em>float</em> value</code></dd>
+      <dd><h5>Description</h5> <p>Gets the <code>id</code> parameter value.</p></dd>
+    </dl>
+    <dl>
+      <dt><h4>setParm</h4></dt>
+      <dd><h5>Parameters</h5> <code><em>string</em> id, <em>float</em> value </code></dd>
+      <dd><h5>Return value</h5> <code><em>boolean</em> returnStatus</code></dd>
+      <dd><h5>Description</h5> <p>Sets the <code>id</code> parameter value. Returns <code>true</code> if succeeded, <code>false</code> otherwise.</p></dd>
+    </dl>
+    <h3>Callbacks</h3>
+      <p> All the callbacks are optional.</p>
+      <dl>
+          <dt><h4>onParmChange</h4></dt>
+          <dd><h5>Parameters</h5> <code><em>string</em> id, <em>number</em> value, <em>float</em> realValue</code></dd>
+          <dd><h5>Return value</h5> <code><em>none</em></code></dd>
+          <dd><h5>Description</h5> <p>Notifies the plugin a parameter change, if the parameter mechanism was specified in <code>pluginConf</code>. <code>value</code> is the parameter value, interpolated in the range specified for the parameter. <code>realValue</code> is the original value, in the [0,1] range.</p></dd>
+      </dl>
+
 
   </section>
 
@@ -446,14 +567,15 @@ handler.sendOSCMessage('/path/of/outbound/message', arg1, arg2, ..., argN);
   
   </section>
 
-      <hr>
+          <hr>
 
-      <footer>
-        <p>&copy; bitterspring.net 2013</p>
-      </footer>
+          <footer>
+            <p>&copy; bitterspring.net 2013</p>
+          </footer>
 
-     </div>
-    </div> <!-- /container -->
+        </div>
+      </div> <!-- /row-fluid -->
+    </div>
 
     <!-- Le javascript
     ================================================== -->
