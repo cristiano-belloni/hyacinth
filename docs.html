@@ -96,7 +96,7 @@
       </div>
 
       <hr/>
-      
+
       <section id="module_structure">
       <h2>Plugin modules</h2>
 
@@ -119,7 +119,7 @@ define(['require'], function(require) {
   var initPlugin = function (initArgs) {
     /* ... */
   };
-            
+
   return {
     /* The plugin returns this object when loaded by the host */
     initPlugin: initPlugin,
@@ -130,8 +130,13 @@ define(['require'], function(require) {
 
     </section>
 
+      <hr/>
+
     <section id="conf_object">
     <h3>The pluginConf configuration object</h3>
+
+    <p><code>pluginConf</code> is the plugin configuration object. It describes what the host should provide to the constructor function, through the arguments, in order to create an instance of the plugin.</p>
+    <p>This object is evaluated only once by the host, at plugin load. It should not change during the lifetime of the host session.</p>
 
     <pre><code data-language="javascript">
 var pluginConf = {
@@ -189,9 +194,10 @@ var pluginConf = {
 
 };</code></pre>
 
-<p><code>pluginConf</code> is the plugin configuration object. It describes what the host should provide to the constructor function, through the arguments, in order to create an instance of the plugin.</p>
-<p>This object is evaluated only once by the host, at plugin load. It should not change during the lifetime of the host session.</p>
-<p><code>pluginConf</code> accepts these parameters:</p>
+<p>Below, a brief description of the <code>pluginConf</code> object.</p>
+    <hr/>
+
+    <h4>Plugin general parameters</h4>
 
 <table class="table table-bordered table-hover table-striped">
   <caption>pluginConf parameters</caption>
@@ -222,7 +228,24 @@ var pluginConf = {
       <td><code>audioOut</code></td>
       <td>int ≥ 0</td>
       <td>The number of distinct audio outputs the plugin will handle. This number <strong>doesn't</strong> represent the stereo or mono-ness of the audio outputs.</td>
-    </tr> 
+    </tr>
+
+  </tbody>
+  </table>
+
+    <h4>Custom GUI parameters</h4>
+    <p>If these parameters are present, the host will create an HTML5 element and pass it to the plugin instance. Use this if you want to create a custom GUI for your plugin.</p>
+
+    <table class="table table-bordered table-hover table-striped">
+    <caption>Custom GUI parameters</caption>
+    <thead>
+    <tr>
+        <th> Parameter name</th>
+        <th> Type</th>
+        <th> Description</th>
+    </tr>
+    </thead>
+    <tbody>
     <tr>
       <td><code>ui</code></td>
       <td>object</td>
@@ -243,10 +266,29 @@ var pluginConf = {
       <td>int ≥ 0</td>
       <td>UI height.</td>
     </tr>
+
+    </tbody>
+    </table>
+
+    <h4>Host GUI parameters</h4>
+    <p>If these parameters are present, the host will create a GUI for the plugin instance according to the description, and call it back when one of parameters has changed. Use this if you want the host to create a GUI for your plugin.</p>
+
+    <table class="table table-bordered table-hover table-striped">
+
+    <caption>Host GUI Parameters</caption>
+    <thead>
+    <tr>
+        <th> Parameter name</th>
+        <th> Type</th>
+        <th> Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
     <tr>
         <td><code>hostParameters</code></td>
         <td>object</td>
-        <td>If this object is defined, the host will create a graphical representation of the plugin interface, based on this object. hostParameters is mutually exclusive to <code>ui<code/> and has precedence over it.</td>
+        <td>If this object is defined, the host will create a graphical representation of the plugin interface, based on this object. hostParameters is mutually exclusive to <code>ui</code> and has precedence over it.</td>
     </tr>
     <tr>
         <td><code>hostParameters.enabled</code></td>
@@ -309,6 +351,7 @@ var pluginConf = {
 
     </section>
 
+      <hr/>
 
 <section id="constructor">
 
@@ -344,6 +387,8 @@ var initPlugin = function(initArgs) {
   </p>
 
   </section>
+
+      <hr/>
 
   <section id="plugin_status">
 
@@ -381,6 +426,8 @@ var initPlugin = function(initArgs) {
     </table>
 
   </section>
+
+      <hr/>
 
   <section id="host_interface">
     <h2>Interfacing with the Host</h2>
@@ -436,6 +483,8 @@ var initPlugin = function(initArgs) {
 
   </section>
 
+      <hr/>
+
     <section id="arguments">
       <h3>Plugin arguments</h3>
 
@@ -449,11 +498,11 @@ var id = initArgs.id;
 /* Length same as audioIn, audioOut */
 var nOfInChannels = initArgs.audioSources.length;
 var nOfOutChannels = initArgs.audioDestinations.length;
-    
+
 /* AudioNode arrays */
 var audioSources = initArgs.audioSources;
 var audioDestinations = initArgs.audioDestinations;
-    
+
 /* Main AudioContext */
 var context = initArgs.audioContext;
 </code></pre>
@@ -510,6 +559,8 @@ var context = initArgs.audioContext;
 
   </section>
 
+      <hr/>
+
     <section id="osc">
     <h3>Communication with OSC</h3>
 
@@ -532,9 +583,9 @@ var oscCallback = function (dest, message) {
   }
 
 };
-       
+
 // Register the callback. optionally bind it to this
-// to be able to operate on the plugin instance object's members.       
+// to be able to operate on the plugin instance object's members.
 
 handler.setCallback(oscCallback.bind(this));
 
@@ -558,11 +609,11 @@ handler.sendOSCMessage('/path/of/outbound/message', arg1, arg2, ..., argN);
 
     <p>A plugin can send an OSC message by calling the <tt>hyOSCHandler</tt>'s object <code>sendOSCMessage</code> method. The first argument of the variadic function is the OSC Address Pattern, while the following arguments are the OSC Arguments of the message.</p>
 
-    
 
-    
 
-  
+
+
+
   </section>
 
           <hr>
