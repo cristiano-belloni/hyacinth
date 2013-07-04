@@ -78,6 +78,7 @@
               <li><a href="#plugin_status">Plugin Status</a></li>
               <li><a href="#host_interface">Interfacing with the Host</a></li>
               <li><a href="#arguments">Plugin arguments</a></li>
+              <li><a href="#saveload">Save and load state</a></li>
               <li><a href="#osc">Communication with OSC</a></li>
             </ul>
           </div><!--/.well -->
@@ -478,6 +479,12 @@ var initPlugin = function(initArgs) {
           <dd><h5>Return value</h5> <code><em>none</em></code></dd>
           <dd><h5>Description</h5> <p>Notifies the plugin a parameter change, if the parameter mechanism was specified in <code>pluginConf</code>. <code>value</code> is the parameter value, interpolated in the range specified for the parameter. <code>realValue</code> is the original value, in the [0,1] range.</p></dd>
       </dl>
+      <dl>
+          <dt><h4>saveState</h4></dt>
+          <dd><h5>Parameters</h5> <em>none</em> </dd>
+          <dd><h5>Return value</h5> <code><em>Object</em></code> | <code><em>false</em></code> | <code><em>undefined</em></code></dd>
+          <dd><h5>Description</h5> <p>Notifies the plugin that the host is requesting a save. The plugin can return an object with its current state (see <a href="#saveload">Save and load section</a>), <code>false</code> if the state hasn't changed since the last <code>saveState</code> invocation, <code>undefined</code> otherwise.</p></dd>
+      </dl>
 
 
   </section>
@@ -553,12 +560,38 @@ var context = initArgs.audioContext;
           <td>Object</td>
           <td>An object that contains the methods used by the plugin instance to communicate with other plugins via <a>Open Sound Control</a>. Read more about OSC support in the host in the <a href="#osc"><em>Communication with OSC</em> section</a>.</td>
         </tr>
+        <tr>
+          <td><code>initialState</code></td>
+          <td>Object | undefined</td>
+          <td>An object with the plugin's saved state (see <a href="#saveload">Save and Load section</a>). If <code>undefined</code>, there is no saved state.</td>
+        </tr>
       </tbody>
     </table>
 
   </section>
 
       <hr/>
+
+
+      <section id="saveload">
+    <h3>Saving and loading plugin internal state</h3>
+
+    <pre><code data-language="javascript">
+var pluginState = {
+  data: {
+
+  },
+  bin: {
+    id1: ,
+    id2: ,
+    id3:
+  }
+}
+    </code></pre>
+
+    <p>TODO</p>
+
+  </section>
 
     <section id="osc">
     <h3>Communication with OSC</h3>
